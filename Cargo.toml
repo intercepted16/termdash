@@ -1,0 +1,18 @@
+[package]
+name = "termdash"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bevy = "0.17.3"
+bevy_ratatui = "0.10.0"
+bevy_ratatui_camera = "0.16.0"
+crossterm = "0.28.1"
+ratatui = "0.29.0"
+
+# perf
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
