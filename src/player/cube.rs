@@ -1,12 +1,9 @@
 // cubeman (main character)
-use crate::constants::CUBE_SIZE;
+use crate::constants::{CUBE_SIZE, GROUND_HEIGHT, GROUND_Y};
 use bevy::prelude::*;
 
 #[derive(Component)]
 pub struct Player;
-
-#[derive(Component)]
-pub struct NeedsGroundStart;
 
 #[derive(Component)]
 pub struct Velocity(pub Vec2);
@@ -18,7 +15,6 @@ fn setup(mut commands: Commands) {
 fn make_player() -> impl Bundle {
     (
         Player,
-        NeedsGroundStart,
         player_transform(),
         player_sprite(),
         player_motion(),
@@ -26,7 +22,11 @@ fn make_player() -> impl Bundle {
 }
 
 fn player_transform() -> Transform {
-    Transform::from_xyz(0.0, 0.0, 0.0)
+    Transform::from_xyz(0.0, ground_top() + CUBE_SIZE * 0.5, 0.0)
+}
+
+fn ground_top() -> f32 {
+    GROUND_Y + GROUND_HEIGHT * 0.5
 }
 
 fn player_sprite() -> Sprite {

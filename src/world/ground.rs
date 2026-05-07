@@ -8,19 +8,15 @@ pub struct Ground;
 
 pub const GROUND_PADDING: f32 = 40.0;
 
-fn spawn_ground_strip(commands: &mut Commands, y: f32) {
+fn spawn_ground(mut commands: Commands) {
     commands.spawn((
         Ground,
         SolidBundle::new(
-            Vec3::new(0.0, y, 0.0),
+            Vec3::new(0.0, 0.0, 0.0), // at the bottom
             Vec2::new(1.0, GROUND_HEIGHT),
             Color::linear_rgb(0.2, 0.8, 0.2),
         ),
     ));
-}
-
-pub fn spawn_ground(mut commands: Commands) {
-    spawn_ground_strip(&mut commands, 0.0);
 }
 
 pub struct GroundPlugin;
