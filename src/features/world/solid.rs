@@ -1,4 +1,3 @@
-// anything solid, literally; we just need to mark them so we can filter in movement sys.
 use bevy::prelude::*;
 
 #[derive(Component, Default)]

@@ -1,5 +1,4 @@
-// cubeman (main character)
-use crate::constants::{CUBE_SIZE, GROUND_HEIGHT, GROUND_Y};
+use crate::core::constants::{CUBE_SIZE, GROUND_HEIGHT, GROUND_Y};
 use bevy::prelude::*;
 
 #[derive(Component)]
@@ -8,17 +7,16 @@ pub struct Player;
 #[derive(Component)]
 pub struct Velocity(pub Vec2);
 
-fn setup(mut commands: Commands) {
+pub fn spawn_player(mut commands: Commands, players: Query<Entity, With<Player>>) {
+    if !players.is_empty() {
+        return;
+    }
+
     commands.spawn(make_player());
 }
 
 fn make_player() -> impl Bundle {
-    (
-        Player,
-        player_transform(),
-        player_sprite(),
-        player_motion(),
-    )
+    (Player, player_transform(), player_sprite(), player_motion())
 }
 
 fn player_transform() -> Transform {
@@ -39,12 +37,4 @@ fn player_sprite() -> Sprite {
 
 fn player_motion() -> Velocity {
     Velocity(Vec2::ZERO)
-}
-
-pub struct PlayerPlugin;
-
-impl Plugin for PlayerPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup);
-    }
 }
