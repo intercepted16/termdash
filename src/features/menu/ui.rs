@@ -1,15 +1,16 @@
 use bevy::prelude::*;
 use bevy_ratatui::RatatuiContext;
 use bevy_ratatui_camera::RatatuiCameraWidget;
-use figlet_rs::FIGlet;
+use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect};
-use ratatui::style::Modifier;
+use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, Borders, Clear, List, ListItem, ListState, Paragraph, Widget};
+use std::rc::Rc;
 
 use crate::core::app_state::AppState;
 use crate::features::menu::resources::MenuState;
-use crate::features::menu::ui_helpers::{base_style, border_style, highlight_style, muted_style};
+use crate::features::world::registry::WorldRegistry;
 
 pub struct MenuUiPlugin;
 
@@ -27,21 +28,29 @@ impl Plugin for MenuUiPlugin {
     }
 }
 
-fn render_main_menu(mut ratatui: ResMut<RatatuiContext>, menu: Res<MenuState>) {
+fn render_main_menu(
+    mut ratatui: ResMut<RatatuiContext>,
+    menu: Res<MenuState>,
+    world_registry: Res<WorldRegistry>,
+) {
     let _ = ratatui.draw(|frame| {
-        let area = frame.area();
-        let layout = menu_layout(area);
+        let layout = menu_layout(frame.area());
 
-        frame.render_widget(title_widget(layout.header.width), layout.header);
-        frame.render_stateful_widget(
-            world_list_widget(&menu),
-            layout.list,
-            &mut list_state(&menu),
+        frame.render_widget(
+            Paragraph::new(title_text(layout[0].width as usize))
+                .alignment(Alignment::Center)
+                .style(highlight_style()),
+            layout[0],
         );
-        frame.render_widget(details_widget(&menu), layout.details);
+        frame.render_stateful_widget(
+            world_list_widget(&world_registry),
+            layout[1],
+            &mut list_state(&menu, &world_registry),
+        );
+        frame.render_widget(details_widget(&menu, &world_registry), layout[2]);
         frame.render_widget(
             help_widget("Up/Down select  |  Enter play  |  Esc menu during run"),
-            layout.footer,
+            layout[3],
         );
     });
 }
@@ -50,42 +59,32 @@ fn render_game(
     mut ratatui: ResMut<RatatuiContext>,
     mut camera_widget: Single<&mut RatatuiCameraWidget>,
 ) {
-    let _ = ratatui.draw(|frame| {
-        camera_widget.render(frame.area(), frame.buffer_mut());
-    });
+    draw_camera(&mut ratatui, &mut camera_widget, |_| {});
 }
 
 fn render_paused_game(
     mut ratatui: ResMut<RatatuiContext>,
     mut camera_widget: Single<&mut RatatuiCameraWidget>,
 ) {
-    let _ = ratatui.draw(|frame| {
-        camera_widget.render(frame.area(), frame.buffer_mut());
-
+    draw_camera(&mut ratatui, &mut camera_widget, |frame| {
         let area = centered_rect(42, 9, frame.area());
         frame.render_widget(Clear, area);
-        frame.render_widget(
-            Paragraph::new(vec![
-                Line::from(Span::styled("Paused", highlight_style())),
-                Line::raw(""),
-                Line::from(Span::styled("Esc resume", base_style())),
-                Line::from(Span::styled("Enter main menu", base_style())),
-            ])
-            .alignment(Alignment::Center)
-            .block(panel_block(" Menu ")),
-            area,
-        );
+        frame.render_widget(paused_widget(), area);
     });
 }
 
-struct MenuLayout {
-    header: Rect,
-    list: Rect,
-    details: Rect,
-    footer: Rect,
+fn draw_camera(
+    ratatui: &mut RatatuiContext,
+    camera_widget: &mut RatatuiCameraWidget,
+    overlay: impl FnOnce(&mut Frame<'_>),
+) {
+    let _ = ratatui.draw(|frame| {
+        camera_widget.render(frame.area(), frame.buffer_mut());
+        overlay(frame);
+    });
 }
 
-fn menu_layout(area: Rect) -> MenuLayout {
+fn menu_layout(area: Rect) -> Rc<[Rect]> {
     let vertical = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -95,10 +94,8 @@ fn menu_layout(area: Rect) -> MenuLayout {
             Constraint::Length(3),
         ])
         .split(area);
-
     let content = centered_rect(76, area.height.saturating_sub(2), area);
-
-    let rows = Layout::default()
+    Layout::default()
         .direction(Direction::Vertical)
         .constraints([
             Constraint::Length(vertical[0].height),
@@ -106,72 +103,54 @@ fn menu_layout(area: Rect) -> MenuLayout {
             Constraint::Length(5),
             Constraint::Length(3),
         ])
-        .split(content);
-
-    MenuLayout {
-        header: rows[0],
-        list: rows[1],
-        details: rows[2],
-        footer: rows[3],
-    }
-}
-
-fn title_widget(width: u16) -> Paragraph<'static> {
-    Paragraph::new(title_text(width as usize))
-        .alignment(Alignment::Center)
-        .style(highlight_style())
+        .split(content)
 }
 
 fn title_text(width: usize) -> Text<'static> {
-    if width < 34 {
-        return Text::from(Line::from("Term Dash"));
-    }
+    const BANNER: &[&str] = &[
+        " _____                     ____            _",
+        "|_   _|__ _ __ _ __ ___   |  _ \\  __ _ ___| |__",
+        "  | |/ _ \\ '__| '_ ` _ \\  | | | |/ _` / __| '_ \\",
+        "  | |  __/ |  | | | | | | | |_| | (_| \\__ \\ | | |",
+        "  |_|\\___|_|  |_| |_| |_| |____/ \\__,_|___/_| |_|",
+    ];
 
-    let Some(font) = FIGlet::standard().ok() else {
-        return Text::from(Line::from("Term Dash"));
-    };
-    let Some(figure) = font.convert("Term Dash") else {
-        return Text::from(Line::from("Term Dash"));
-    };
+    Text::from(if width < 34 {
+        vec![Line::from("Term Dash")]
+    } else {
+        BANNER.iter().map(|line| Line::from(*line)).collect()
+    })
+}
 
-    Text::from(
-        figure
-            .as_str()
-            .lines()
-            .map(|line| Line::from(line.trim_end().to_string()))
+fn world_list_widget(world_registry: &WorldRegistry) -> List<'_> {
+    List::new(
+        world_registry
+            .worlds
+            .iter()
+            .map(|world| {
+                ListItem::new(Line::from(vec![
+                    Span::styled("  ", base_style()),
+                    Span::styled(world.name.as_str(), base_style()),
+                ]))
+            })
             .collect::<Vec<_>>(),
     )
+    .block(panel_block(" Worlds "))
+    .highlight_style(highlight_style())
+    .highlight_symbol("> ")
 }
 
-fn world_list_widget(menu: &MenuState) -> List<'_> {
-    let items = menu
-        .worlds
-        .iter()
-        .map(|world| {
-            ListItem::new(Line::from(vec![
-                Span::styled("  ", base_style()),
-                Span::styled(world.name.as_str(), base_style()),
-            ]))
-        })
-        .collect::<Vec<_>>();
-
-    List::new(items)
-        .block(panel_block(" Worlds "))
-        .highlight_style(highlight_style())
-        .highlight_symbol("> ")
-}
-
-fn list_state(menu: &MenuState) -> ListState {
+fn list_state(menu: &MenuState, world_registry: &WorldRegistry) -> ListState {
     let mut state = ListState::default();
-    if !menu.worlds.is_empty() {
+    if !world_registry.worlds.is_empty() {
         state.select(Some(menu.selected_world));
     }
     state
 }
 
-fn details_widget(menu: &MenuState) -> Paragraph<'_> {
-    let description = menu
-        .selected_world()
+fn details_widget<'a>(menu: &MenuState, world_registry: &'a WorldRegistry) -> Paragraph<'a> {
+    let description = world_registry
+        .selected(menu.selected_world)
         .map(|world| world.description.as_str())
         .unwrap_or("No worlds available.");
 
@@ -188,11 +167,38 @@ fn help_widget(text: &'static str) -> Paragraph<'static> {
         .style(muted_style().add_modifier(Modifier::DIM))
 }
 
+fn paused_widget() -> Paragraph<'static> {
+    Paragraph::new(vec![
+        Line::from(Span::styled("Paused", highlight_style())),
+        Line::raw(""),
+        Line::from(Span::styled("Esc resume", base_style())),
+        Line::from(Span::styled("Enter main menu", base_style())),
+    ])
+    .alignment(Alignment::Center)
+    .block(panel_block(" Menu "))
+}
+
 fn panel_block(title: &'static str) -> Block<'static> {
     Block::default()
         .title(title)
         .borders(Borders::ALL)
         .border_style(border_style())
+}
+
+fn base_style() -> Style {
+    Style::default().fg(Color::White)
+}
+
+fn highlight_style() -> Style {
+    base_style().fg(Color::Cyan).add_modifier(Modifier::BOLD)
+}
+
+fn muted_style() -> Style {
+    Style::default().fg(Color::DarkGray)
+}
+
+fn border_style() -> Style {
+    Style::default().fg(Color::Green)
 }
 
 fn centered_rect(width: u16, height: u16, area: Rect) -> Rect {

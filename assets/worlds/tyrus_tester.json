@@ -1,0 +1,35 @@
+{
+	"id": "tyrus_tester",
+	"name": "Tyrus Tester",
+	"description": "for testing tyrus",
+	"size": { "x": 2600.0, "y": 520.0 },
+	"scroll_speed_px": 80.0,
+	"player": {
+		"spawn": { "x": 120.0, "y": -208.0 },
+		"size": { "x": 32.0, "y": 32.0 },
+		"color": { "r": 1.0, "g": 1.0, "b": 1.0 }
+	},
+	"ground": {
+		"y": -232.0,
+		"height": 16.0,
+		"color": { "r": 0.1, "g": 0.25, "b": 0.8 },
+		"segments": [
+			{ "start_x": -200.0, "width": 920.0 },
+			{ "start_x": 820.0, "width": 1780.0 }
+		]
+	},
+	"objects": [
+		{
+			"kind": "solid",
+			"position": { "x": 420.0, "y": -190.0 },
+			"size": { "x": 96.0, "y": 32.0 },
+			"color": { "r": 0.3, "g": 0.65, "b": 0.95 }
+		},
+		{
+			"kind": "spike",
+			"position": { "x": 500.0, "y": -208.0 },
+			"size": { "x": 32.0, "y": 32.0 },
+			"color": { "r": 0.95, "g": 0.2, "b": 0.2 }
+		}
+	]
+}

@@ -1,25 +1,25 @@
 use bevy::prelude::*;
 
 use crate::core::app_state::AppState;
-use crate::features::player::PlayerPlugin;
-use crate::features::player::components::Player;
-use crate::features::world::WorldPlugin;
-use crate::features::world::components::Ground;
+use crate::features::world::components::WorldEntity;
+use crate::features::world::loading::CurrentWorld;
 
 pub struct GameplayPlugin;
 
 impl Plugin for GameplayPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((WorldPlugin, PlayerPlugin))
-            .add_systems(OnEnter(AppState::MainMenu), cleanup_gameplay);
+        app.add_systems(OnEnter(AppState::MainMenu), cleanup_gameplay);
     }
 }
 
 fn cleanup_gameplay(
     mut commands: Commands,
-    entities: Query<Entity, Or<(With<Player>, With<Ground>)>>,
+    mut current_world: ResMut<CurrentWorld>,
+    entities: Query<Entity, With<WorldEntity>>,
 ) {
     for entity in &entities {
         commands.entity(entity).despawn();
     }
+
+    current_world.definition = None;
 }

@@ -1,24 +1,41 @@
 use bevy::prelude::*;
 
-use crate::core::constants::{GROUND_HEIGHT, GROUND_Y};
-use crate::features::world::solid::SolidBundle;
+use crate::features::world::model::{GroundDefinition, GroundSegmentDefinition, WorldDefinition};
 
-#[derive(Component)]
-pub struct Ground;
+macro_rules! marker_components {
+    ($($component:ident),* $(,)?) => {
+        $(#[derive(Component)] pub struct $component;)*
+    };
+}
 
-pub const GROUND_PADDING: f32 = 40.0;
+marker_components!(WorldEntity, Ground, Obstacle, Spike, Hazard, Solid);
 
-pub fn spawn_ground(mut commands: Commands, ground: Query<Entity, With<Ground>>) {
-    if !ground.is_empty() {
-        return;
-    }
-
-    commands.spawn((
+pub fn make_ground_segment(
+    ground: &GroundDefinition,
+    segment: &GroundSegmentDefinition,
+) -> impl Bundle {
+    (
+        WorldEntity,
         Ground,
-        SolidBundle::new(
-            Vec3::new(0.0, GROUND_Y, 0.0),
-            Vec2::new(1.0, GROUND_HEIGHT),
-            Color::linear_rgb(0.2, 0.8, 0.2),
+        solid_sprite(
+            Vec3::new(segment.start_x + segment.width * 0.5, ground.y, 0.0),
+            Vec2::new(segment.width, ground.height),
+            ground.color.as_color(),
         ),
-    ));
+    )
+}
+
+pub fn default_ground_segment(world: &WorldDefinition) -> GroundSegmentDefinition {
+    GroundSegmentDefinition {
+        start_x: 0.0,
+        width: world.size.x,
+    }
+}
+
+fn solid_sprite(position: Vec3, size: Vec2, color: Color) -> impl Bundle {
+    (
+        Solid,
+        Transform::from_translation(position),
+        Sprite::from_color(color, size),
+    )
 }

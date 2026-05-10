@@ -1,10 +1,11 @@
 mod core;
 mod features;
 
-use crate::core::constants::FPS;
-use crate::core::{CameraPlugin, StatePlugin};
+use crate::core::{CameraPlugin, StatePlugin, constants::FPS};
 use crate::features::gameplay::GameplayPlugin;
 use crate::features::menu::{MenuPlugin, MenuUiPlugin};
+use crate::features::player::PlayerPlugin;
+use crate::features::world::WorldPlugin;
 use std::time::Duration;
 
 use bevy::app::ScheduleRunnerPlugin;
@@ -22,14 +23,13 @@ fn main() {
                 .build()
                 .disable::<WinitPlugin>()
                 .disable::<LogPlugin>(),
-            RatatuiPlugins {
-                enable_input_forwarding: true,
-                ..default()
-            },
+            RatatuiPlugins::default(),
             RatatuiCameraPlugin,
             StatePlugin,
             CameraPlugin,
+            WorldPlugin,
             MenuPlugin,
+            PlayerPlugin,
             GameplayPlugin,
             MenuUiPlugin,
         ))
