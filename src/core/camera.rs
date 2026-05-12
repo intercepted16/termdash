@@ -1,13 +1,10 @@
-use bevy::prelude::*;
-use bevy_ratatui_camera::RatatuiCamera;
-
 use crate::core::app_state::AppState;
 use crate::core::constants::*;
 use crate::features::player::components::Player;
 use crate::features::world::loading::CurrentWorld;
-
+use bevy::prelude::*;
+use bevy_ratatui_camera::RatatuiCamera;
 pub struct CameraPlugin;
-
 type CameraQuery<'w, 's> = Single<
     'w,
     's,
@@ -18,7 +15,6 @@ type CameraQuery<'w, 's> = Single<
     ),
     (With<RatatuiCamera>, Without<Player>),
 >;
-
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup_camera).add_systems(
@@ -27,14 +23,12 @@ impl Plugin for CameraPlugin {
         );
     }
 }
-
 pub fn projection_scale(projection: &Projection, fallback: f32) -> f32 {
     match projection {
         Projection::Orthographic(ortho) => ortho.scale,
         _ => fallback,
     }
 }
-
 pub fn follow_player(
     player: Single<&Transform, With<Player>>,
     current_world: Res<CurrentWorld>,
@@ -49,11 +43,9 @@ pub fn follow_player(
         .map(|world| world.ground.y - world.ground.height * 0.5)
         .unwrap_or(GROUND_Y - GROUND_HEIGHT * 0.5);
     let bottom_margin = world_height * CAMERA_BOTTOM_MARGIN_FRACTION;
-
     camera_transform.translation.x = player.translation.x;
     camera_transform.translation.y = ground_bottom + world_height * 0.5 - bottom_margin;
 }
-
 fn setup_camera(mut commands: Commands) {
     commands.spawn((
         Camera2d,

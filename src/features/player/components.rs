@@ -1,13 +1,9 @@
-use bevy::prelude::*;
-
 use crate::features::world::model::PlayerDefinition;
-
+use bevy::prelude::*;
 #[derive(Component)]
 pub struct Player;
-
 #[derive(Component)]
 pub struct Velocity(pub Vec2);
-
 pub fn make_player(player: &PlayerDefinition) -> impl Bundle {
     (
         Player,

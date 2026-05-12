@@ -10,6 +10,7 @@ use std::rc::Rc;
 
 use crate::core::app_state::AppState;
 use crate::features::menu::resources::MenuState;
+use crate::features::player::PlayerDeathState;
 use crate::features::world::registry::WorldRegistry;
 
 pub struct MenuUiPlugin;
@@ -58,8 +59,15 @@ fn render_main_menu(
 fn render_game(
     mut ratatui: ResMut<RatatuiContext>,
     mut camera_widget: Single<&mut RatatuiCameraWidget>,
+    death_state: Res<PlayerDeathState>,
 ) {
-    draw_camera(&mut ratatui, &mut camera_widget, |_| {});
+    let percent = death_state.percent();
+
+    draw_camera(&mut ratatui, &mut camera_widget, |frame| {
+        if let Some(percent) = percent {
+            render_progress(frame, percent);
+        }
+    });
 }
 
 fn render_paused_game(
@@ -107,18 +115,16 @@ fn menu_layout(area: Rect) -> Rc<[Rect]> {
 }
 
 fn title_text(width: usize) -> Text<'static> {
-    const BANNER: &[&str] = &[
-        " _____                     ____            _",
-        "|_   _|__ _ __ _ __ ___   |  _ \\  __ _ ___| |__",
-        "  | |/ _ \\ '__| '_ ` _ \\  | | | |/ _` / __| '_ \\",
-        "  | |  __/ |  | | | | | | | |_| | (_| \\__ \\ | | |",
-        "  |_|\\___|_|  |_| |_| |_| |____/ \\__,_|___/_| |_|",
-    ];
+    const BANNER: &str = " _____                     ____            _
+|_   _|__ _ __ _ __ ___   |  _ \\  __ _ ___| |__
+  | |/ _ \\ '__| '_ ` _ \\  | | | |/ _` / __| '_ \\
+  | |  __/ |  | | | | | | | |_| | (_| \\__ \\ | | |
+  |_|\\___|_|  |_| |_| |_| |____/ \\__,_|___/_| |_|";
 
     Text::from(if width < 34 {
         vec![Line::from("Term Dash")]
     } else {
-        BANNER.iter().map(|line| Line::from(*line)).collect()
+        BANNER.lines().map(Line::from).collect()
     })
 }
 
@@ -162,27 +168,78 @@ fn details_widget<'a>(menu: &MenuState, world_registry: &'a WorldRegistry) -> Pa
 }
 
 fn help_widget(text: &'static str) -> Paragraph<'static> {
-    Paragraph::new(text)
-        .alignment(Alignment::Center)
-        .style(muted_style().add_modifier(Modifier::DIM))
+    Paragraph::new(text).alignment(Alignment::Center).style(
+        Style::default()
+            .fg(Color::DarkGray)
+            .add_modifier(Modifier::DIM),
+    )
 }
 
 fn paused_widget() -> Paragraph<'static> {
     Paragraph::new(vec![
-        Line::from(Span::styled("Paused", highlight_style())),
+        Line::styled("Paused", highlight_style()),
         Line::raw(""),
-        Line::from(Span::styled("Esc resume", base_style())),
-        Line::from(Span::styled("Enter main menu", base_style())),
+        Line::styled("Esc resume", base_style()),
+        Line::styled("Enter main menu", base_style()),
     ])
     .alignment(Alignment::Center)
     .block(panel_block(" Menu "))
+}
+
+fn render_progress(frame: &mut Frame<'_>, percent: u8) {
+    let lines = big_percent_text(percent);
+    let width = lines.iter().map(|line| line.width()).max().unwrap_or(0) as u16;
+    let height = lines.len() as u16;
+    let area = centered_rect(width, height, frame.area());
+
+    frame.render_widget(
+        Paragraph::new(lines)
+            .alignment(Alignment::Center)
+            .style(highlight_style()),
+        area,
+    );
+}
+
+fn big_percent_text(percent: u8) -> Vec<Line<'static>> {
+    const DIGITS: [[&str; 5]; 10] = [
+        ["███", "█ █", "█ █", "█ █", "███"],
+        [" ██", "  █", "  █", "  █", " ███"],
+        ["███", "  █", "███", "█  ", "███"],
+        ["███", "  █", "███", "  █", "███"],
+        ["█ █", "█ █", "███", "  █", "  █"],
+        ["███", "█  ", "███", "  █", "███"],
+        ["███", "█  ", "███", "█ █", "███"],
+        ["███", "  █", "  █", "  █", "  █"],
+        ["███", "█ █", "███", "█ █", "███"],
+        ["███", "█ █", "███", "  █", "███"],
+    ];
+    const PERCENT: [&str; 5] = ["█   █", "   █ ", "  █  ", " █   ", "█   █"];
+
+    let glyphs = percent
+        .to_string()
+        .bytes()
+        .map(|digit| DIGITS[(digit - b'0') as usize])
+        .chain([PERCENT])
+        .collect::<Vec<_>>();
+
+    (0..5)
+        .map(|row| {
+            Line::from(
+                glyphs
+                    .iter()
+                    .map(|glyph| glyph[row])
+                    .collect::<Vec<_>>()
+                    .join(" "),
+            )
+        })
+        .collect()
 }
 
 fn panel_block(title: &'static str) -> Block<'static> {
     Block::default()
         .title(title)
         .borders(Borders::ALL)
-        .border_style(border_style())
+        .border_style(Style::default().fg(Color::Green))
 }
 
 fn base_style() -> Style {
@@ -191,14 +248,6 @@ fn base_style() -> Style {
 
 fn highlight_style() -> Style {
     base_style().fg(Color::Cyan).add_modifier(Modifier::BOLD)
-}
-
-fn muted_style() -> Style {
-    Style::default().fg(Color::DarkGray)
-}
-
-fn border_style() -> Style {
-    Style::default().fg(Color::Green)
 }
 
 fn centered_rect(width: u16, height: u16, area: Rect) -> Rect {

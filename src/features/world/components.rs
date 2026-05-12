@@ -1,15 +1,19 @@
-use bevy::prelude::*;
-
 use crate::features::world::model::{GroundDefinition, GroundSegmentDefinition, WorldDefinition};
-
+use bevy::prelude::*;
 macro_rules! marker_components {
     ($($component:ident),* $(,)?) => {
         $(#[derive(Component)] pub struct $component;)*
     };
 }
-
-marker_components!(WorldEntity, Ground, Obstacle, Spike, Hazard, Solid);
-
+marker_components!(
+    WorldEntity,
+    Ground,
+    Obstacle,
+    Spike,
+    Hazard,
+    Solid,
+    WorldMusic
+);
 pub fn make_ground_segment(
     ground: &GroundDefinition,
     segment: &GroundSegmentDefinition,
@@ -24,14 +28,12 @@ pub fn make_ground_segment(
         ),
     )
 }
-
 pub fn default_ground_segment(world: &WorldDefinition) -> GroundSegmentDefinition {
     GroundSegmentDefinition {
         start_x: 0.0,
         width: world.size.x,
     }
 }
-
 fn solid_sprite(position: Vec3, size: Vec2, color: Color) -> impl Bundle {
     (
         Solid,

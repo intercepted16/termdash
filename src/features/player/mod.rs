@@ -1,15 +1,18 @@
 pub mod components;
 mod systems;
-
-use bevy::prelude::*;
-
 use crate::core::app_state::AppState;
-use crate::features::player::systems::move_player;
-
+use crate::features::player::systems::hazard::handle_hazards;
+use crate::features::player::systems::movement::move_player;
+use bevy::prelude::*;
+pub use systems::hazard::PlayerDeathState;
 pub struct PlayerPlugin;
-
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, move_player.run_if(in_state(AppState::Playing)));
+        app.init_resource::<PlayerDeathState>().add_systems(
+            Update,
+            (move_player, handle_hazards)
+                .chain()
+                .run_if(in_state(AppState::Playing)),
+        );
     }
 }
