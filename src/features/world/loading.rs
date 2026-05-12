@@ -3,6 +3,7 @@ use crate::features::world::components::*;
 use crate::features::world::model::{WorldDefinition, WorldObjectKind};
 use crate::features::world::queries::MusicEntities;
 use crate::features::world::registry::WorldRegistry;
+use crate::features::world::visualizer::spawn_audio_visualizer;
 use bevy::prelude::*;
 #[derive(Resource, Default)]
 pub struct CurrentWorld {
@@ -68,5 +69,6 @@ pub fn spawn_music(commands: &mut Commands, asset_server: &AssetServer, world: &
             PlaybackSettings::LOOP,
             WorldMusic,
         ));
+        spawn_audio_visualizer(commands, world, path);
     }
 }

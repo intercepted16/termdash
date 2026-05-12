@@ -12,7 +12,8 @@ marker_components!(
     Spike,
     Hazard,
     Solid,
-    WorldMusic
+    WorldMusic,
+    AudioVisualizerBar
 );
 pub fn make_ground_segment(
     ground: &GroundDefinition,

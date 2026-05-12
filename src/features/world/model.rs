@@ -12,6 +12,8 @@ pub struct WorldDefinition {
     #[serde(default)]
     pub objects: Vec<WorldObjectDefinition>,
     pub music_path: Option<String>, // relative to assets/
+    #[serde(default)]
+    pub audio_visualizer: Option<AudioVisualizerDefinition>,
 }
 #[derive(Clone, Copy, Debug, Deserialize)]
 pub struct Vec2Def {
@@ -55,6 +57,14 @@ pub struct GroundDefinition {
     pub color: ColorDef,
     #[serde(default)]
     pub segments: Vec<GroundSegmentDefinition>,
+}
+#[derive(Clone, Debug, Deserialize)]
+pub struct AudioVisualizerDefinition {
+    #[serde(default = "default_visualizer_bar_count")]
+    pub bar_count: usize,
+}
+fn default_visualizer_bar_count() -> usize {
+    72
 }
 #[derive(Clone, Debug, Deserialize)]
 pub struct GroundSegmentDefinition {
