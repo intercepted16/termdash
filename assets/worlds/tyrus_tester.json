@@ -1,35 +1,129 @@
 {
 	"id": "tyrus_tester",
 	"name": "Tyrus Tester",
-	"description": "for testing tyrus",
-	"size": { "x": 2600.0, "y": 520.0 },
-	"scroll_speed_px": 80.0,
+	"description": "silly tyrus tester",
+	"music_path": "music/field_of_memories.ogg",
+	"size": { "x": 3600.0, "y": 560.0 },
+	"scroll_speed_px": 72.0,
 	"player": {
-		"spawn": { "x": 120.0, "y": -208.0 },
+		"spawn": { "x": 80.0, "y": -208.0 },
 		"size": { "x": 32.0, "y": 32.0 },
 		"color": { "r": 1.0, "g": 1.0, "b": 1.0 }
 	},
 	"ground": {
 		"y": -232.0,
 		"height": 16.0,
-		"color": { "r": 0.1, "g": 0.25, "b": 0.8 },
+		"color": { "r": 0.12, "g": 0.36, "b": 0.72 },
 		"segments": [
-			{ "start_x": -200.0, "width": 920.0 },
-			{ "start_x": 820.0, "width": 1780.0 }
+			{ "start_x": -160.0, "width": 760.0 },
+			{ "start_x": 690.0, "width": 430.0 },
+			{ "start_x": 1210.0, "width": 660.0 },
+			{ "start_x": 1970.0, "width": 510.0 },
+			{ "start_x": 2570.0, "width": 1030.0 }
 		]
 	},
 	"objects": [
 		{
 			"kind": "solid",
-			"position": { "x": 420.0, "y": -190.0 },
-			"size": { "x": 96.0, "y": 32.0 },
-			"color": { "r": 0.3, "g": 0.65, "b": 0.95 }
+			"position": { "x": 250.0, "y": -184.0 },
+			"size": { "x": 80.0, "y": 24.0 },
+			"color": { "r": 0.22, "g": 0.64, "b": 0.96 }
 		},
 		{
 			"kind": "spike",
-			"position": { "x": 500.0, "y": -208.0 },
-			"size": { "x": 32.0, "y": 32.0 },
-			"color": { "r": 0.95, "g": 0.2, "b": 0.2 }
+			"position": { "x": 430.0, "y": -208.0 },
+			"size": { "x": 28.0, "y": 32.0 },
+			"color": { "r": 0.95, "g": 0.18, "b": 0.16 }
+		},
+		{
+			"kind": "solid",
+			"position": { "x": 760.0, "y": -184.0 },
+			"size": { "x": 108.0, "y": 24.0 },
+			"color": { "r": 0.2, "g": 0.72, "b": 0.66 }
+		},
+		{
+			"kind": "solid",
+			"position": { "x": 910.0, "y": -152.0 },
+			"size": { "x": 112.0, "y": 24.0 },
+			"color": { "r": 0.2, "g": 0.72, "b": 0.66 }
+		},
+		{
+			"kind": "spike",
+			"position": { "x": 1350.0, "y": -208.0 },
+			"size": { "x": 30.0, "y": 32.0 },
+			"color": { "r": 0.98, "g": 0.2, "b": 0.22 }
+		},
+		{
+			"kind": "solid",
+			"position": { "x": 1455.0, "y": -184.0 },
+			"size": { "x": 96.0, "y": 24.0 },
+			"color": { "r": 0.72, "g": 0.58, "b": 0.18 }
+		},
+		{
+			"kind": "spike",
+			"position": { "x": 1530.0, "y": -208.0 },
+			"size": { "x": 26.0, "y": 32.0 },
+			"color": { "r": 0.96, "g": 0.22, "b": 0.18 }
+		},
+		{
+			"kind": "solid",
+			"position": { "x": 1770.0, "y": -168.0 },
+			"size": { "x": 120.0, "y": 24.0 },
+			"color": { "r": 0.55, "g": 0.76, "b": 0.28 }
+		},
+		{
+			"kind": "solid",
+			"position": { "x": 2050.0, "y": -184.0 },
+			"size": { "x": 104.0, "y": 24.0 },
+			"color": { "r": 0.28, "g": 0.62, "b": 0.95 }
+		},
+		{
+			"kind": "spike",
+			"position": { "x": 2165.0, "y": -208.0 },
+			"size": { "x": 30.0, "y": 32.0 },
+			"color": { "r": 0.94, "g": 0.18, "b": 0.28 }
+		},
+		{
+			"kind": "solid",
+			"position": { "x": 2315.0, "y": -152.0 },
+			"size": { "x": 116.0, "y": 24.0 },
+			"color": { "r": 0.28, "g": 0.62, "b": 0.95 }
+		},
+		{
+			"kind": "solid",
+			"position": { "x": 2825.0, "y": -184.0 },
+			"size": { "x": 86.0, "y": 24.0 },
+			"color": { "r": 0.82, "g": 0.42, "b": 0.16 }
+		},
+		{
+			"kind": "solid",
+			"position": { "x": 2965.0, "y": -152.0 },
+			"size": { "x": 92.0, "y": 24.0 },
+			"color": { "r": 0.82, "g": 0.42, "b": 0.16 }
+		},
+		{
+			"kind": "solid",
+			"position": { "x": 3110.0, "y": -184.0 },
+			"size": { "x": 86.0, "y": 24.0 },
+			"color": { "r": 0.82, "g": 0.42, "b": 0.16 }
+		},
+		{
+			"kind": "spike",
+			"position": { "x": 3235.0, "y": -208.0 },
+			"size": { "x": 30.0, "y": 32.0 },
+			"color": { "r": 0.95, "g": 0.16, "b": 0.2 }
+		},
+		{
+			"kind": "spike",
+			"position": { "x": 3300.0, "y": -208.0 },
+			"size": { "x": 30.0, "y": 32.0 },
+			"color": { "r": 0.95, "g": 0.16, "b": 0.2 }
+		},
+		{
+			"kind": "solid",
+			"position": { "x": 3440.0, "y": -184.0 },
+			"size": { "x": 160.0, "y": 24.0 },
+			"color": { "r": 0.36, "g": 0.82, "b": 0.34 }
 		}
 	]
 }
