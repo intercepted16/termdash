@@ -3,6 +3,7 @@
 	"name": "Tyrus Tester",
 	"description": "silly tyrus tester",
 	"music_path": "music/field_of_memories.ogg",
+	"audio_visualizer": { "bar_count": 32 },
 	"size": { "x": 3600.0, "y": 560.0 },
 	"scroll_speed_px": 72.0,
 	"player": {
