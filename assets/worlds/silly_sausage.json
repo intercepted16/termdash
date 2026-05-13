@@ -1,0 +1,19 @@
+{
+  "id": "silly_sausage",
+  "name": "Silly sausage",
+  "description": "your first world!",
+  "size": { "x": 2400.0, "y": 520.0 },
+  "scroll_speed_px": 60.0,
+  "player": {
+    "spawn": { "x": 0.0, "y": -208.0 },
+    "size": { "x": 32.0, "y": 32.0 },
+    "color": { "r": 1.0, "g": 1.0, "b": 1.0 }
+  },
+  "ground": {
+    "y": -232.0,
+    "height": 16.0,
+    "color": { "r": 0.2, "g": 0.8, "b": 0.2 },
+    "segments": []
+  },
+  "objects": []
+}
