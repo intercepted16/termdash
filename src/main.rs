@@ -1,6 +1,8 @@
+mod config;
 mod core;
 mod features;
-use crate::core::{CameraPlugin, StatePlugin, constants::FPS};
+use crate::config::load_config;
+use crate::core::{CameraPlugin, StatePlugin};
 use crate::features::gameplay::GameplayPlugin;
 use crate::features::menu::{MenuPlugin, MenuUiPlugin};
 use crate::features::player::PlayerPlugin;
@@ -13,9 +15,13 @@ use bevy_ratatui::RatatuiPlugins;
 use bevy_ratatui_camera::RatatuiCameraPlugin;
 use std::time::Duration;
 fn main() {
-    App::new()
+    let config = load_config();
+    let frame_duration = Duration::from_secs_f64(1.0 / config.game.fps);
+
+    let mut app = App::new();
+    app.insert_resource(config)
         .add_plugins((
-            ScheduleRunnerPlugin::run_loop(Duration::from_secs_f64(1. / FPS)),
+            ScheduleRunnerPlugin::run_loop(frame_duration),
             DefaultPlugins
                 .build()
                 .disable::<WinitPlugin>()

@@ -1,3 +1,4 @@
+use crate::config::Config;
 use crate::core::camera::projection_scale;
 use crate::features::player::components::Player;
 use crate::features::player::systems::hazard::PlayerDeathState;
@@ -10,13 +11,10 @@ use bevy::prelude::*;
 use bevy_ratatui::event::KeyMessage;
 use bevy_ratatui_camera::RatatuiCamera;
 use ratatui::crossterm::event::{KeyCode as TerminalKeyCode, KeyEventKind};
-const FORWARD_SPEED_PX: f32 = 100.0;
-const GRAVITY_PX: f32 = 300.0;
-const JUMP_SPEED_PX: f32 = 120.0;
-const GROUND_EPSILON: f32 = 0.05;
-const AIR_SPIN_RADIANS_PER_SECOND: f32 = 8.0;
 type SolidSprites<'w, 's> =
     Query<'w, 's, (&'static Transform, &'static Sprite), (With<Solid>, Without<Player>)>;
+const GROUND_EPSILON: f32 = 0.05;
+const AIR_SPIN_RADIANS_PER_SECOND: f32 = 8.0;
 fn overlaps_y(a: Aabb2d, b: Aabb2d) -> bool {
     a.min.y < b.max.y - GROUND_EPSILON && a.max.y > b.min.y + GROUND_EPSILON
 }
@@ -48,6 +46,7 @@ fn player_on_ground(player: Aabb2d, solids: &[Aabb2d]) -> bool {
     })
 }
 pub fn move_player(
+    config: Res<Config>,
     time: Res<Time>,
     mut keys: MessageReader<KeyMessage>,
     death_state: Res<PlayerDeathState>,
@@ -66,10 +65,10 @@ pub fn move_player(
         .definition
         .as_ref()
         .map(|world| world.scroll_speed_px)
-        .unwrap_or(FORWARD_SPEED_PX);
+        .unwrap_or(config.player.forward_speed_px);
     let forward_speed = forward_speed_px * world_units_per_render_pixel;
-    let gravity = GRAVITY_PX * world_units_per_render_pixel;
-    let jump_speed = JUMP_SPEED_PX * world_units_per_render_pixel;
+    let gravity = config.player.gravity_px * world_units_per_render_pixel;
+    let jump_speed = config.player.jump_speed_px * world_units_per_render_pixel;
     let solids = solid_bounds(params.p1().iter());
     let jump_pressed = keys.read().any(|key| {
         matches!(key.kind, KeyEventKind::Press | KeyEventKind::Repeat)

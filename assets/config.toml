@@ -1,0 +1,18 @@
+[game]
+fps = 60.0
+
+[camera]
+zoom = 3.0
+bottom_margin_fraction = 0.08
+
+[player]
+forward_speed_px = 100.0
+gravity_px = 300.0
+jump_speed_px = 120.0
+death_pause_seconds = 3.0
+
+[menu]
+key_cooldown_seconds = 0.2
+
+[visualizer]
+enabled = true

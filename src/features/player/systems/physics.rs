@@ -1,9 +1,13 @@
 use bevy::math::bounding::{Aabb2d, BoundingVolume};
 use bevy::prelude::*;
+const DEFAULT_SPRITE_SIZE: f32 = 32.0;
 pub fn bounds_from_sprite(transform: &Transform, sprite: &Sprite) -> Aabb2d {
     Aabb2d::new(
         transform.translation.xy(),
-        sprite.custom_size.unwrap_or(Vec2::splat(32.0)) * 0.5,
+        sprite
+            .custom_size
+            .unwrap_or(Vec2::splat(DEFAULT_SPRITE_SIZE))
+            * 0.5,
     )
 }
 pub fn bounds_at(bounds: Aabb2d, center: Vec2) -> Aabb2d {

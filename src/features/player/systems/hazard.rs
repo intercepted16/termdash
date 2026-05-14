@@ -1,3 +1,4 @@
+use crate::config::Config;
 use crate::features::player::components::{Player, Velocity};
 use crate::features::player::systems::physics::{bounds_from_sprite, intersects};
 use crate::features::player::systems::queries::Players;
@@ -7,7 +8,6 @@ use crate::features::world::model::WorldDefinition;
 use crate::features::world::queries::MusicEntities;
 use bevy::ecs::system::SystemParam;
 use bevy::prelude::*;
-const DEATH_PAUSE_SECONDS: f32 = 3.0;
 type Hazards<'w, 's> =
     Query<'w, 's, (&'static Transform, &'static Sprite), (With<Hazard>, Without<Player>)>;
 struct DeathPause {
@@ -69,6 +69,7 @@ fn detect_player_death(
 }
 fn start_death_pause(
     percent: u8,
+    config: &Config,
     death_state: &mut PlayerDeathState,
     players: &mut Players,
     commands: &mut Commands,
@@ -79,7 +80,7 @@ fn start_death_pause(
     }
     despawn_music(commands, music);
     death_state.pause = Some(DeathPause {
-        timer: Timer::from_seconds(DEATH_PAUSE_SECONDS, TimerMode::Once),
+        timer: Timer::from_seconds(config.player.death_pause_seconds, TimerMode::Once),
         percent,
     });
 }
@@ -90,6 +91,7 @@ fn tick_death_pause(
     players: &mut Players,
     commands: &mut Commands,
     asset_server: &AssetServer,
+    config: &Config,
 ) {
     let Some(pause) = death_state.pause.as_mut() else {
         return;
@@ -102,10 +104,12 @@ fn tick_death_pause(
     for (mut transform, _, mut velocity) in players.iter_mut() {
         reset_player(&mut transform, &mut velocity, spawn);
     }
-    spawn_music(commands, asset_server, world);
+    spawn_music(commands, asset_server, world, config);
     death_state.pause = None;
 }
+#[allow(clippy::too_many_arguments)]
 pub fn handle_hazards(
+    config: Res<Config>,
     time: Res<Time>,
     current_world: Res<CurrentWorld>,
     asset_server: Res<AssetServer>,
@@ -124,6 +128,7 @@ pub fn handle_hazards(
             &mut hazards.players,
             &mut commands,
             &asset_server,
+            &config,
         );
         return;
     }
@@ -132,6 +137,7 @@ pub fn handle_hazards(
     };
     start_death_pause(
         percent,
+        &config,
         &mut death_state,
         &mut hazards.players,
         &mut commands,

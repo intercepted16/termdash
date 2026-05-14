@@ -60,11 +60,8 @@ pub struct GroundDefinition {
 }
 #[derive(Clone, Debug, Deserialize)]
 pub struct AudioVisualizerDefinition {
-    #[serde(default = "default_visualizer_bar_count")]
+    #[serde(default)]
     pub bar_count: usize,
-}
-fn default_visualizer_bar_count() -> usize {
-    72
 }
 #[derive(Clone, Debug, Deserialize)]
 pub struct GroundSegmentDefinition {

@@ -14,9 +14,6 @@ impl WorldRegistry {
 impl Default for WorldRegistry {
     fn default() -> Self {
         let worlds = load_worlds_from_assets().unwrap();
-        if worlds.is_empty() {
-            warn!("no worlds found in assets/worlds");
-        }
         Self { worlds }
     }
 }

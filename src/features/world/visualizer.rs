@@ -7,12 +7,10 @@
 /// There is smoothing so that it does not flicker and change constantly due to minor
 /// changes.
 ///
-/// As to not distract the player, the constants below have been tuned by trial-and-error.
-///
 /// To be honest, I don't understand the maths here to it's full; this is more of a
 /// set-and-forget ordeal.
+use crate::config::Config;
 use crate::core::camera::projection_scale;
-use crate::core::constants::CAMERA_ZOOM;
 use crate::features::world::components::{AudioVisualizerBar, WorldEntity, WorldMusic};
 use crate::features::world::model::WorldDefinition;
 use bevy::audio::AudioSinkPlayback;
@@ -24,6 +22,9 @@ use std::io::BufReader;
 use std::path::Path;
 use std::sync::Arc;
 
+const RMS_FLOOR: f32 = 0.000_01;
+const RMS_DECIBEL_SCALE: f32 = 20.0;
+const RMS_DECIBEL_RANGE: f32 = 48.0;
 const ENVELOPE_FRAME_SECONDS: f32 = 0.080;
 const MIN_BAR_HEIGHT: f32 = 4.0;
 const VISUALIZER_Z: f32 = -20.0;
@@ -98,8 +99,16 @@ impl AudioFrame {
     }
 }
 
-pub fn spawn_audio_visualizer(commands: &mut Commands, world: &WorldDefinition, music_path: &str) {
-    let Some(config) = world.audio_visualizer.as_ref() else {
+pub fn spawn_audio_visualizer(
+    commands: &mut Commands,
+    world: &WorldDefinition,
+    music_path: &str,
+    config: &Config,
+) {
+    if !config.visualizer.enabled {
+        return;
+    }
+    let Some(visualizer) = world.audio_visualizer.as_ref() else {
         return;
     };
 
@@ -109,7 +118,7 @@ pub fn spawn_audio_visualizer(commands: &mut Commands, world: &WorldDefinition, 
     };
 
     let envelope = Arc::new(envelope);
-    let bar_count = config.bar_count.clamp(16, 160);
+    let bar_count = visualizer.bar_count.clamp(16, 160);
     let base_y = world.ground.y + world.ground.height * 0.5;
     let max_height = (world.size.y * 0.46).max(MIN_BAR_HEIGHT);
 
@@ -156,6 +165,7 @@ type VisualizerCamera<'w, 's> = Single<
 
 // Update bar position and color from the current music time
 pub fn update_audio_visualizer(
+    config: Res<Config>,
     music: Query<&AudioSink, With<WorldMusic>>,
     camera: VisualizerCamera,
     mut bars: Query<
@@ -177,7 +187,7 @@ pub fn update_audio_visualizer(
     };
 
     let (camera_transform, projection, ratatui_camera) = camera.into_inner();
-    let scale = projection_scale(projection, CAMERA_ZOOM);
+    let scale = projection_scale(projection, config.camera.zoom);
     let viewport_width = ratatui_camera.dimensions.x as f32 * scale;
     let left_x = camera_transform.translation.x - viewport_width * 0.5;
 
@@ -335,17 +345,12 @@ impl AudioFrameSums {
 
 fn rms_to_visual_level(sum_squared: f32, sample_count: usize) -> f32 {
     let rms = (sum_squared / sample_count.max(1) as f32).sqrt();
-    let decibels = 20.0 * rms.max(0.000_01).log10();
+    let decibels = RMS_DECIBEL_SCALE * rms.max(RMS_FLOOR).log10();
 
-    ((decibels + 48.0) / 48.0).clamp(0.0, 1.0)
+    ((decibels + RMS_DECIBEL_RANGE) / RMS_DECIBEL_RANGE).clamp(0.0, 1.0)
 }
 
-fn visualizer_color(
-    features: AudioFrame,
-    seconds: f32,
-    index: usize,
-    bar_count: usize,
-) -> Color {
+fn visualizer_color(features: AudioFrame, seconds: f32, index: usize, bar_count: usize) -> Color {
     let intensity = (features.volume * 0.35 + features.bass * 0.65).clamp(0.0, 1.0);
     let gradient = index as f32 / bar_count.max(1) as f32;
 
