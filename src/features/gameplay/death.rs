@@ -1,7 +1,7 @@
 use crate::config::Config;
+use crate::core::collision::{bounds_from_sprite, intersects};
 use crate::features::player::components::{Player, Velocity};
-use crate::features::player::systems::physics::{bounds_from_sprite, intersects};
-use crate::features::player::systems::queries::Players;
+use crate::features::player::queries::Players;
 use crate::features::world::components::Hazard;
 use crate::features::world::loading::{CurrentWorld, despawn_music, spawn_music};
 use crate::features::world::model::WorldDefinition;
@@ -108,7 +108,7 @@ fn tick_death_pause(
     death_state.pause = None;
 }
 #[allow(clippy::too_many_arguments)]
-pub fn handle_hazards(
+pub fn handle_death(
     config: Res<Config>,
     time: Res<Time>,
     current_world: Res<CurrentWorld>,

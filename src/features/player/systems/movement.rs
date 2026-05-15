@@ -1,9 +1,10 @@
 use crate::config::Config;
 use crate::core::camera::projection_scale;
+use crate::core::collision::{GROUND_EPSILON, overlaps_y};
+use crate::core::collision::{bounds_at, bounds_from_sprite, overlaps_x};
+use crate::features::gameplay::death::PlayerDeathState;
 use crate::features::player::components::Player;
-use crate::features::player::systems::hazard::PlayerDeathState;
-use crate::features::player::systems::physics::{bounds_at, bounds_from_sprite, overlaps_x};
-use crate::features::player::systems::queries::Players;
+use crate::features::player::queries::Players;
 use crate::features::world::components::Solid;
 use crate::features::world::loading::CurrentWorld;
 use bevy::math::bounding::{Aabb2d, BoundingVolume};
@@ -11,13 +12,12 @@ use bevy::prelude::*;
 use bevy_ratatui::event::KeyMessage;
 use bevy_ratatui_camera::RatatuiCamera;
 use ratatui::crossterm::event::{KeyCode as TerminalKeyCode, KeyEventKind};
+
 type SolidSprites<'w, 's> =
     Query<'w, 's, (&'static Transform, &'static Sprite), (With<Solid>, Without<Player>)>;
-const GROUND_EPSILON: f32 = 0.05;
+
 const AIR_SPIN_RADIANS_PER_SECOND: f32 = 8.0;
-fn overlaps_y(a: Aabb2d, b: Aabb2d) -> bool {
-    a.min.y < b.max.y - GROUND_EPSILON && a.max.y > b.min.y + GROUND_EPSILON
-}
+
 fn solid_bounds<'a, I>(solids: I) -> Vec<Aabb2d>
 where
     I: IntoIterator<Item = (&'a Transform, &'a Sprite)>,
