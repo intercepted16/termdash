@@ -1,42 +1,33 @@
-/// Visualize music played in worlds.
-/// The music `.ogg` is decoded once into an 'envelope'.
-/// Each frame stores bass, mid, treble and volume.
+// Procedural music visualizer synchronized to audio playback time.
 ///
-/// Every tick, based on the music's intensity, a
-/// colour and height is determined and shown.
-/// There is smoothing so that it does not flicker and change constantly due to minor
-/// changes.
+/// Each bar combines several time-based wave components:
+/// - low-frequency motion for large swells
+/// - mid-frequency motion for rhythmic variation
+/// - high-frequency motion for shimmer/detail
 ///
-/// To be honest, I don't understand the maths here to it's full; this is more of a
-/// set-and-forget ordeal.
+/// The oscillators are spatially offset per-bar to create coherent traveling
+/// wave patterns across the screen. The combined signal is clamped and shaped
+/// nonlinearly to exaggerate peaks and suppress weaker movement.
+///
+/// Bar height, brightness, opacity, and hue animation are all derived from the
+/// same pulse value.
+///
+/// In summary, everything is fake;
+/// two completely different audio samples at the same
+/// playback time would appear the same.
 use crate::config::Config;
 use crate::core::camera::projection_scale;
-use crate::features::world::components::{AudioVisualizerBar, WorldEntity, WorldMusic};
-use crate::features::world::model::WorldDefinition;
+use crate::world::components::{AudioVisualizerBar, WorldEntity, WorldMusic};
+use crate::world::model::WorldDefinition;
 use bevy::audio::AudioSinkPlayback;
 use bevy::prelude::*;
 use bevy_ratatui_camera::RatatuiCamera;
-use lewton::inside_ogg::OggStreamReader;
-use std::fs::File;
-use std::io::BufReader;
-use std::path::Path;
-use std::sync::Arc;
 
-const RMS_FLOOR: f32 = 0.000_01;
-const RMS_DECIBEL_SCALE: f32 = 20.0;
-const RMS_DECIBEL_RANGE: f32 = 48.0;
-const ENVELOPE_FRAME_SECONDS: f32 = 0.080;
 const MIN_BAR_HEIGHT: f32 = 4.0;
 const VISUALIZER_Z: f32 = -20.0;
-const BAR_TIME_SPREAD_SECONDS: f32 = 0.024;
-const BASS_CUTOFF_HZ: f32 = 120.0;
-const MID_CUTOFF_HZ: f32 = 1_500.0;
-const FEATURE_SMOOTHING: f32 = 0.070;
 
 #[derive(Component)]
-pub struct AudioVisualizer {
-    envelope: Arc<AudioEnvelope>,
-}
+pub struct AudioVisualizer;
 
 #[derive(Component)]
 pub struct AudioVisualizerBarState {
@@ -47,77 +38,20 @@ pub struct AudioVisualizerBarState {
     phase: f32,
 }
 
-#[derive(Clone)]
-struct AudioEnvelope {
-    frames: Vec<AudioFrame>,
-    frame_seconds: f32,
-    duration_seconds: f32,
-}
-
-impl AudioEnvelope {
-    fn frame_at(&self, seconds: f32) -> AudioFrame {
-        if self.frames.is_empty() || self.duration_seconds <= 0.0 {
-            return AudioFrame::default();
-        }
-
-        let wrapped_seconds = seconds.rem_euclid(self.duration_seconds);
-        let position = wrapped_seconds / self.frame_seconds;
-        let index = position.floor() as usize;
-        let next_index = (index + 1) % self.frames.len();
-        let blend = position.fract();
-
-        self.frames[index].lerp(self.frames[next_index], blend)
-    }
-}
-
-#[derive(Clone, Copy, Default)]
-struct AudioFrame {
-    bass: f32,
-    mids: f32,
-    treble: f32,
-    volume: f32,
-}
-
-impl AudioFrame {
-    fn clamp(self) -> Self {
-        Self {
-            bass: self.bass.clamp(0.0, 1.0),
-            mids: self.mids.clamp(0.0, 1.0),
-            treble: self.treble.clamp(0.0, 1.0),
-            volume: self.volume.clamp(0.0, 1.0),
-        }
-    }
-
-    fn lerp(self, target: Self, factor: f32) -> Self {
-        Self {
-            bass: self.bass.lerp(target.bass, factor),
-            mids: self.mids.lerp(target.mids, factor),
-            treble: self.treble.lerp(target.treble, factor),
-            volume: self.volume.lerp(target.volume, factor),
-        }
-        .clamp()
-    }
-}
-
 pub fn spawn_audio_visualizer(
     commands: &mut Commands,
     world: &WorldDefinition,
-    music_path: &str,
+    _music_path: &str,
     config: &Config,
 ) {
     if !config.visualizer.enabled {
         return;
     }
+
     let Some(visualizer) = world.audio_visualizer.as_ref() else {
         return;
     };
 
-    let Some(envelope) = analyze_ogg_envelope(music_path) else {
-        warn!("could not analyze audio visualizer envelope for {music_path}");
-        return;
-    };
-
-    let envelope = Arc::new(envelope);
     let bar_count = visualizer.bar_count.clamp(16, 160);
     let base_y = world.ground.y + world.ground.height * 0.5;
     let max_height = (world.size.y * 0.46).max(MIN_BAR_HEIGHT);
@@ -129,9 +63,7 @@ pub fn spawn_audio_visualizer(
             WorldEntity,
             WorldMusic,
             AudioVisualizerBar,
-            AudioVisualizer {
-                envelope: envelope.clone(),
-            },
+            AudioVisualizer,
             AudioVisualizerBarState {
                 index,
                 bar_count,
@@ -145,7 +77,7 @@ pub fn spawn_audio_visualizer(
                 VISUALIZER_Z,
             )),
             Sprite::from_color(
-                visualizer_color(AudioFrame::default(), 0.0, index, bar_count),
+                visualizer_color(0.0, 0.0, index, bar_count),
                 Vec2::new(8.0, MIN_BAR_HEIGHT),
             ),
         ));
@@ -163,7 +95,6 @@ type VisualizerCamera<'w, 's> = Single<
     (With<RatatuiCamera>, Without<AudioVisualizerBar>),
 >;
 
-// Update bar position and color from the current music time
 pub fn update_audio_visualizer(
     config: Res<Config>,
     music: Query<&AudioSink, With<WorldMusic>>,
@@ -178,7 +109,7 @@ pub fn update_audio_visualizer(
         Without<RatatuiCamera>,
     >,
 ) {
-    let Some(position_seconds) = music
+    let Some(seconds) = music
         .iter()
         .next()
         .map(|sink| sink.position().as_secs_f32())
@@ -191,179 +122,35 @@ pub fn update_audio_visualizer(
     let viewport_width = ratatui_camera.dimensions.x as f32 * scale;
     let left_x = camera_transform.translation.x - viewport_width * 0.5;
 
-    for (visualizer, bar, mut transform, mut sprite) in &mut bars {
-        let bar_spacing = viewport_width / bar.bar_count as f32;
-        let bar_width = (bar_spacing * 0.64).max(3.0);
+    for (_, bar, mut transform, mut sprite) in &mut bars {
+        let spacing = viewport_width / bar.bar_count as f32;
+        let width = (spacing * 0.64).max(3.0);
 
-        let sample_time = position_seconds + bar.index as f32 * BAR_TIME_SPREAD_SECONDS;
-        let features = visualizer.envelope.frame_at(sample_time);
+        let x = bar.index as f32 / bar.bar_count as f32;
 
-        let wave = ((position_seconds * 3.2 + bar.phase).sin() * 0.5 + 0.5) * 0.08;
-        let pulse = (features.volume * 0.30 + features.bass * 0.70).clamp(0.0, 1.0);
+        let low = (seconds * 3.2 + bar.phase).sin() * 0.5;
+        let mid = (seconds * 2.3 + x * 9.0).sin() * 0.3;
+        let high = (seconds * 3.2 + x * 21.0).sin() * 0.2;
 
-        let height = (MIN_BAR_HEIGHT + (pulse.powf(1.55) + wave) * bar.max_height * 0.72)
-            .clamp(MIN_BAR_HEIGHT, bar.max_height);
+        let pulse = (low + mid + high + 0.5).clamp(0.0, 1.0).powf(1.6);
+        let height =
+            (MIN_BAR_HEIGHT + pulse * bar.max_height * 0.52).clamp(MIN_BAR_HEIGHT, bar.max_height);
 
-        sprite.custom_size = Some(Vec2::new(bar_width, height));
-        sprite.color = visualizer_color(features, position_seconds, bar.index, bar.bar_count);
+        sprite.custom_size = Some(Vec2::new(width, height));
+        sprite.color = visualizer_color(pulse, seconds, bar.index, bar.bar_count);
 
-        transform.translation.x = left_x + bar_spacing * (bar.index as f32 + 0.5);
+        transform.translation.x = left_x + spacing * (bar.index as f32 + 0.5);
         transform.translation.y = bar.base_y + height * 0.5;
     }
 }
 
-// populate the envelope with the initial info
-fn analyze_ogg_envelope(asset_path: &str) -> Option<AudioEnvelope> {
-    let path = Path::new("assets").join(asset_path);
-    let file = File::open(path).ok()?;
-    let mut reader = OggStreamReader::new(BufReader::new(file)).ok()?;
-
-    let sample_rate = reader.ident_hdr.audio_sample_rate as f32;
-    let channels = usize::from(reader.ident_hdr.audio_channels).max(1);
-    let frame_samples = (sample_rate * ENVELOPE_FRAME_SECONDS).round() as usize;
-    let mut analyzer = AudioFeatureAnalyzer::new(sample_rate);
-
-    let mut frames = Vec::new();
-    let mut sums = AudioFrameSums::default();
-    let mut samples = 0usize;
-    let mut total_samples = 0usize;
-    let mut smoothed = AudioFrame::default();
-
-    while let Some(packet) = reader.read_dec_packet_itl().ok()? {
-        for sample_frame in packet.chunks(channels) {
-            let normalized = sample_frame
-                .iter()
-                .map(|sample| *sample as f32 / i16::MAX as f32)
-                .sum::<f32>()
-                / sample_frame.len() as f32;
-
-            let bands = analyzer.analyze(normalized);
-
-            sums.add(bands);
-            samples += 1;
-            total_samples += 1;
-
-            if samples >= frame_samples {
-                smoothed = smoothed.lerp(sums.to_frame(samples), FEATURE_SMOOTHING);
-                frames.push(smoothed);
-
-                sums = AudioFrameSums::default();
-                samples = 0;
-            }
-        }
-    }
-
-    if samples > 0 {
-        smoothed = smoothed.lerp(sums.to_frame(samples), FEATURE_SMOOTHING);
-        frames.push(smoothed);
-    }
-
-    let duration_seconds = total_samples as f32 / sample_rate;
-
-    (!frames.is_empty()).then_some(AudioEnvelope {
-        frames,
-        frame_seconds: ENVELOPE_FRAME_SECONDS,
-        duration_seconds,
-    })
-}
-
-struct AudioFeatureAnalyzer {
-    bass: OnePoleLowPass,
-    mids: OnePoleLowPass,
-}
-
-impl AudioFeatureAnalyzer {
-    fn new(sample_rate: f32) -> Self {
-        Self {
-            bass: OnePoleLowPass::new(BASS_CUTOFF_HZ, sample_rate),
-            mids: OnePoleLowPass::new(MID_CUTOFF_HZ, sample_rate),
-        }
-    }
-
-    fn analyze(&mut self, sample: f32) -> AudioFrame {
-        let low = self.bass.next(sample);
-        let low_mid = self.mids.next(sample);
-        let mid = low_mid - low;
-        let high = sample - low_mid;
-
-        AudioFrame {
-            bass: low * low,
-            mids: mid * mid,
-            treble: high * high,
-            volume: sample * sample,
-        }
-    }
-}
-
-struct OnePoleLowPass {
-    alpha: f32,
-    value: f32,
-}
-
-impl OnePoleLowPass {
-    fn new(cutoff_hz: f32, sample_rate: f32) -> Self {
-        let dt = 1.0 / sample_rate;
-        let rc = 1.0 / (std::f32::consts::TAU * cutoff_hz);
-
-        Self {
-            alpha: dt / (rc + dt),
-            value: 0.0,
-        }
-    }
-
-    fn next(&mut self, sample: f32) -> f32 {
-        self.value += self.alpha * (sample - self.value);
-        self.value
-    }
-}
-
-#[derive(Default)]
-struct AudioFrameSums {
-    bass: f32,
-    mids: f32,
-    treble: f32,
-    volume: f32,
-}
-
-impl AudioFrameSums {
-    fn add(&mut self, frame: AudioFrame) {
-        self.bass += frame.bass;
-        self.mids += frame.mids;
-        self.treble += frame.treble;
-        self.volume += frame.volume;
-    }
-
-    fn to_frame(&self, sample_count: usize) -> AudioFrame {
-        AudioFrame {
-            bass: rms_to_visual_level(self.bass, sample_count),
-            mids: rms_to_visual_level(self.mids, sample_count),
-            treble: rms_to_visual_level(self.treble, sample_count),
-            volume: rms_to_visual_level(self.volume, sample_count),
-        }
-    }
-}
-
-fn rms_to_visual_level(sum_squared: f32, sample_count: usize) -> f32 {
-    let rms = (sum_squared / sample_count.max(1) as f32).sqrt();
-    let decibels = RMS_DECIBEL_SCALE * rms.max(RMS_FLOOR).log10();
-
-    ((decibels + RMS_DECIBEL_RANGE) / RMS_DECIBEL_RANGE).clamp(0.0, 1.0)
-}
-
-fn visualizer_color(features: AudioFrame, seconds: f32, index: usize, bar_count: usize) -> Color {
-    let intensity = (features.volume * 0.35 + features.bass * 0.65).clamp(0.0, 1.0);
+fn visualizer_color(pulse: f32, seconds: f32, index: usize, bar_count: usize) -> Color {
     let gradient = index as f32 / bar_count.max(1) as f32;
 
-    let base_hue = 220.0;
-    let gradient_hue = gradient * 42.0;
-    let audio_hue = features.mids * 32.0;
-    let time_hue = seconds * 7.0;
-
-    let hue = (base_hue + gradient_hue + audio_hue + time_hue).rem_euclid(360.0);
-
-    let saturation = (0.62 + features.treble * 0.18).clamp(0.0, 0.85);
-    let brightness = (0.46 + intensity * 0.30).clamp(0.0, 0.82);
-    let alpha = (0.42 + intensity * 0.26).clamp(0.0, 0.72);
+    let hue = (220.0 + gradient * 42.0 + seconds * 7.0).rem_euclid(360.0);
+    let saturation = 0.70;
+    let brightness = 0.55 + pulse * 0.18;
+    let alpha = 0.45 + pulse * 0.18;
 
     Color::hsva(hue, saturation, brightness, alpha)
 }
