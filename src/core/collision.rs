@@ -12,14 +12,11 @@ pub fn bounds_from_sprite(transform: &Transform, sprite: &Sprite) -> Aabb2d {
 pub fn bounds_at(bounds: Aabb2d, center: Vec2) -> Aabb2d {
     Aabb2d::new(center, bounds.half_size())
 }
+
 pub fn overlaps_x(a: Aabb2d, b: Aabb2d) -> bool {
     (a.center().x - b.center().x).abs() <= a.half_size().x + b.half_size().x
 }
 
 pub fn overlaps_y(a: Aabb2d, b: Aabb2d) -> bool {
     a.min.y < b.max.y - GROUND_EPSILON && a.max.y > b.min.y + GROUND_EPSILON
-}
-
-pub fn intersects(a: Aabb2d, b: Aabb2d) -> bool {
-    overlaps_x(a, b) && (a.center().y - b.center().y).abs() <= a.half_size().y + b.half_size().y
 }

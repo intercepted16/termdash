@@ -16,7 +16,7 @@
 /// two completely different audio samples at the same
 /// playback time would appear the same.
 use crate::config::Config;
-use crate::core::camera::projection_scale;
+use crate::core::camera::projection_scale_or;
 use crate::world::components::{AudioVisualizerBar, WorldEntity, WorldMusic};
 use crate::world::model::WorldDefinition;
 use bevy::audio::AudioSinkPlayback;
@@ -118,7 +118,7 @@ pub fn update_audio_visualizer(
     };
 
     let (camera_transform, projection, ratatui_camera) = camera.into_inner();
-    let scale = projection_scale(projection, config.camera.zoom);
+    let scale = projection_scale_or(projection, config.camera.zoom);
     let viewport_width = ratatui_camera.dimensions.x as f32 * scale;
     let left_x = camera_transform.translation.x - viewport_width * 0.5;
 

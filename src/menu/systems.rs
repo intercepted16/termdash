@@ -1,9 +1,9 @@
+use crate::AppState;
 use crate::config::Config;
-use crate::core::app_state::AppState;
-use crate::features::menu::resources::MenuState;
-use crate::features::world::components::WorldMusic;
-use crate::features::world::loading::LoadWorldEvent;
-use crate::features::world::registry::WorldRegistry;
+use crate::menu::resources::MenuState;
+use crate::world::components::WorldMusic;
+use crate::world::loading::LoadWorldEvent;
+use crate::world::registry::WorldRegistry;
 use bevy::prelude::*;
 use bevy_ratatui::event::KeyMessage;
 use ratatui::crossterm::event::{KeyCode as TerminalKeyCode, KeyEventKind};

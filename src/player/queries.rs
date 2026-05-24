@@ -1,5 +1,6 @@
-use crate::features::player::components::{Player, Velocity};
+use crate::player::components::{Player, Velocity};
 use bevy::prelude::*;
+
 pub type Players<'w, 's> = Query<
     'w,
     's,

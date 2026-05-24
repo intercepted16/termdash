@@ -1,17 +1,17 @@
 use crate::config::Config;
-use crate::core::camera::projection_scale;
+use crate::core::camera::world_units_per_pixel;
 use crate::core::collision::{GROUND_EPSILON, overlaps_y};
 use crate::core::collision::{bounds_at, bounds_from_sprite, overlaps_x};
-use crate::features::gameplay::death::PlayerDeathState;
-use crate::features::player::components::Player;
-use crate::features::player::queries::Players;
-use crate::features::world::components::Solid;
-use crate::features::world::loading::CurrentWorld;
+use crate::gameplay::death::PlayerDeathState;
+use crate::player::components::Player;
+use crate::player::jump_pressed;
+use crate::player::queries::Players;
+use crate::world::components::Solid;
+use crate::world::loading::CurrentWorld;
 use bevy::math::bounding::{Aabb2d, BoundingVolume};
 use bevy::prelude::*;
 use bevy_ratatui::event::KeyMessage;
 use bevy_ratatui_camera::RatatuiCamera;
-use ratatui::crossterm::event::{KeyCode as TerminalKeyCode, KeyEventKind};
 
 type SolidSprites<'w, 's> =
     Query<'w, 's, (&'static Transform, &'static Sprite), (With<Solid>, Without<Player>)>;
@@ -52,32 +52,29 @@ pub fn move_player(
     death_state: Res<PlayerDeathState>,
     current_world: Res<CurrentWorld>,
     camera_projection: Single<&Projection, With<RatatuiCamera>>,
-    mut params: ParamSet<(Players, SolidSprites)>,
+    queries: (Players, SolidSprites),
 ) {
     if death_state.is_active() {
         keys.clear();
         return;
     }
+    let (mut players, solid_sprites) = queries;
     let dt = time.delta_secs();
-    let world_units_per_render_pixel =
-        projection_scale(camera_projection.into_inner(), 1.0).max(f32::EPSILON);
+    let world_units_per_pixel = world_units_per_pixel(camera_projection.into_inner());
     let forward_speed_px = current_world
         .definition
         .as_ref()
         .map(|world| world.scroll_speed_px)
         .unwrap_or(config.player.forward_speed_px);
-    let forward_speed = forward_speed_px * world_units_per_render_pixel;
-    let gravity = config.player.gravity_px * world_units_per_render_pixel;
-    let jump_speed = config.player.jump_speed_px * world_units_per_render_pixel;
-    let solids = solid_bounds(params.p1().iter());
-    let jump_pressed = keys.read().any(|key| {
-        matches!(key.kind, KeyEventKind::Press | KeyEventKind::Repeat)
-            && key.code == TerminalKeyCode::Up
-    });
-    for (mut transform, sprite, mut velocity) in &mut params.p0() {
+    let forward_speed = forward_speed_px * world_units_per_pixel;
+    let gravity = config.player.gravity_px * world_units_per_pixel;
+    let jump_speed = config.player.jump_speed_px * world_units_per_pixel;
+    let solids = solid_bounds(solid_sprites.iter());
+    let wants_jump = jump_pressed(&mut keys);
+    for (mut transform, sprite, mut velocity) in &mut players {
         let player = bounds_from_sprite(&transform, sprite);
         let grounded = player_on_ground(player, &solids);
-        if grounded && jump_pressed {
+        if grounded && wants_jump {
             velocity.0.y = jump_speed;
         } else if grounded && velocity.0.y < 0.0 {
             velocity.0.y = 0.0;

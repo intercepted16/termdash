@@ -1,15 +1,17 @@
 use crate::config::Config;
-use crate::core::collision::{bounds_from_sprite, intersects};
-use crate::features::player::components::{Player, Velocity};
-use crate::features::player::queries::Players;
-use crate::features::world::components::Hazard;
-use crate::features::world::loading::{CurrentWorld, despawn_music, spawn_music};
-use crate::features::world::model::WorldDefinition;
-use crate::features::world::queries::MusicEntities;
+use crate::core::collision::bounds_from_sprite;
+use crate::player::components::{Player, Velocity};
+use crate::player::queries::Players;
+use crate::world::components::HazardBox;
+use crate::world::loading::{CurrentWorld, despawn_music, spawn_music};
+use crate::world::model::WorldDefinition;
+use crate::world::queries::MusicEntities;
 use bevy::ecs::system::SystemParam;
+use bevy::math::bounding::{Aabb2d, IntersectsVolume};
 use bevy::prelude::*;
-type Hazards<'w, 's> =
-    Query<'w, 's, (&'static Transform, &'static Sprite), (With<Hazard>, Without<Player>)>;
+
+type Hazards<'w, 's> = Query<'w, 's, (&'static Transform, &'static HazardBox), Without<Player>>;
+
 struct DeathPause {
     timer: Timer,
     percent: u8,
@@ -50,16 +52,11 @@ fn detect_player_death(
     hazards: &Hazards,
 ) -> Option<u8> {
     let world_bottom = world.ground.y - world.size.y;
-    let hazard_bounds = hazards
-        .iter()
-        .map(|(transform, sprite)| bounds_from_sprite(transform, sprite))
-        .collect::<Vec<_>>();
     for (transform, sprite, _) in players.iter() {
         let player_bounds = bounds_from_sprite(transform, sprite);
-        let hit_hazard = hazard_bounds
-            .iter()
-            .copied()
-            .any(|hazard| intersects(player_bounds, hazard));
+        let hit_hazard = hazards.iter().any(|(transform, area)| {
+            player_bounds.intersects(&Aabb2d::new(transform.translation.xy(), area.half_size))
+        });
         let fell_out_of_world = transform.translation.y < world_bottom;
         if hit_hazard || fell_out_of_world {
             return Some(completion_percent(transform.translation.x, world));

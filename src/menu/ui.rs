@@ -8,10 +8,10 @@ use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, Borders, Clear, List, ListItem, ListState, Paragraph, Widget};
 use std::rc::Rc;
 
-use crate::core::app_state::AppState;
-use crate::features::menu::resources::MenuState;
-use crate::features::player::PlayerDeathState;
-use crate::features::world::registry::WorldRegistry;
+use crate::AppState;
+use crate::gameplay::death::PlayerDeathState;
+use crate::menu::resources::MenuState;
+use crate::world::registry::WorldRegistry;
 
 pub struct MenuUiPlugin;
 

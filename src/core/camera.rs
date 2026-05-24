@@ -1,8 +1,8 @@
+use crate::AppState;
 use crate::config::Config;
-use crate::core::app_state::AppState;
 use crate::core::constants::{GROUND_HEIGHT, GROUND_Y};
-use crate::features::player::components::Player;
-use crate::features::world::loading::CurrentWorld;
+use crate::player::components::Player;
+use crate::world::loading::CurrentWorld;
 use bevy::prelude::*;
 use bevy_ratatui_camera::RatatuiCamera;
 pub struct CameraPlugin;
@@ -24,7 +24,7 @@ impl Plugin for CameraPlugin {
         );
     }
 }
-pub fn projection_scale(projection: &Projection, fallback: f32) -> f32 {
+pub fn projection_scale_or(projection: &Projection, fallback: f32) -> f32 {
     match projection {
         Projection::Orthographic(ortho) => ortho.scale,
         _ => fallback,
@@ -37,7 +37,7 @@ pub fn follow_player(
     camera: CameraQuery,
 ) {
     let (mut camera_transform, projection, ratatui_camera) = camera.into_inner();
-    let scale = projection_scale(projection, config.camera.zoom);
+    let scale = projection_scale_or(projection, config.camera.zoom);
     let world_height = ratatui_camera.dimensions.y as f32 * scale;
     let ground_bottom = current_world
         .definition
@@ -57,4 +57,8 @@ fn setup_camera(mut commands: Commands, config: Res<Config>) {
         }),
         RatatuiCamera::default(),
     ));
+}
+
+pub fn world_units_per_pixel(projection: &Projection) -> f32 {
+    projection_scale_or(projection, 1.0).max(f32::EPSILON)
 }

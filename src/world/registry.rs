@@ -2,21 +2,24 @@ use super::model::*;
 use bevy::prelude::*;
 use std::fs;
 use std::path::Path;
+
 #[derive(Resource)]
 pub struct WorldRegistry {
     pub worlds: Vec<WorldDefinition>,
 }
+
 impl WorldRegistry {
+    pub fn load() -> Result<Self, String> {
+        Ok(Self {
+            worlds: load_worlds_from_assets()?,
+        })
+    }
+
     pub fn selected(&self, index: usize) -> Option<&WorldDefinition> {
         self.worlds.get(index)
     }
 }
-impl Default for WorldRegistry {
-    fn default() -> Self {
-        let worlds = load_worlds_from_assets().unwrap();
-        Self { worlds }
-    }
-}
+
 fn load_worlds_from_assets() -> Result<Vec<WorldDefinition>, String> {
     let world_dir = Path::new("assets/worlds");
     if !world_dir.exists() {

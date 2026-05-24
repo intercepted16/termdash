@@ -1,4 +1,4 @@
-use crate::features::world::model::PlayerDefinition;
+use crate::world::model::PlayerDefinition;
 use bevy::prelude::*;
 #[derive(Component)]
 pub struct Player;
