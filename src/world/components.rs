@@ -27,7 +27,7 @@ pub fn make_ground_segment(
         make_solid_sprite(
             Vec3::new(segment.start_x + segment.width * 0.5, ground.y, 0.0),
             Vec2::new(segment.width, ground.height),
-            ground.color.as_color(),
+            ground.color,
         ),
     )
 }

@@ -97,7 +97,7 @@ fn tick_death_pause(
     if !pause.timer.is_finished() {
         return;
     }
-    let spawn = world.player.spawn.as_vec2();
+    let spawn = world.player.spawn;
     for (mut transform, _, mut velocity) in players.iter_mut() {
         reset_player(&mut transform, &mut velocity, spawn);
     }

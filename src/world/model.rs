@@ -1,3 +1,4 @@
+use bevy::color::Color;
 use bevy::prelude::*;
 use serde::Deserialize;
 
@@ -6,7 +7,7 @@ pub struct WorldDefinition {
     pub id: String,
     pub name: String,
     pub description: String,
-    pub size: Vec2Def,
+    pub size: Vec2,
     pub scroll_speed_px: f32,
     pub player: PlayerDefinition,
     pub ground: GroundDefinition,
@@ -17,52 +18,18 @@ pub struct WorldDefinition {
     pub audio_visualizer: Option<AudioVisualizerDefinition>,
 }
 
-#[derive(Clone, Copy, Debug, Deserialize)]
-pub struct Vec2Def {
-    pub x: f32,
-    pub y: f32,
-}
-
-impl Vec2Def {
-    pub fn as_vec2(self) -> Vec2 {
-        Vec2::new(self.x, self.y)
-    }
-}
-
-#[derive(Clone, Copy, Debug, Deserialize)]
-pub struct ColorDef {
-    #[serde(default)]
-    pub r: f32,
-    #[serde(default)]
-    pub g: f32,
-    #[serde(default)]
-    pub b: f32,
-    #[serde(default = "opaque")]
-    pub a: f32,
-}
-
-fn opaque() -> f32 {
-    1.0
-}
-
-impl ColorDef {
-    pub fn as_color(self) -> Color {
-        Color::linear_rgba(self.r, self.g, self.b, self.a)
-    }
-}
-
 #[derive(Clone, Debug, Deserialize)]
 pub struct PlayerDefinition {
-    pub spawn: Vec2Def,
-    pub size: Vec2Def,
-    pub color: ColorDef,
+    pub spawn: Vec2,
+    pub size: Vec2,
+    pub color: Color,
 }
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct GroundDefinition {
     pub y: f32,
     pub height: f32,
-    pub color: ColorDef,
+    pub color: Color,
     #[serde(default)]
     pub segments: Vec<GroundSegmentDefinition>,
 }
@@ -89,22 +56,22 @@ pub enum WorldObjectDefinition {
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct SolidObjectDefinition {
-    pub position: Vec2Def,
-    pub size: Vec2Def,
-    pub color: ColorDef,
+    pub position: Vec2,
+    pub size: Vec2,
+    pub color: Color,
 }
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct SpikeObjectDefinition {
-    pub position: Vec2Def,
-    pub size: Vec2Def,
-    pub color: ColorDef,
+    pub position: Vec2,
+    pub size: Vec2,
+    pub color: Color,
 }
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct JumpOrbObjectDefinition {
-    pub position: Vec2Def,
+    pub position: Vec2,
     pub radius: f32,
-    pub color: ColorDef,
+    pub color: Color,
     pub strength_px: f32,
 }

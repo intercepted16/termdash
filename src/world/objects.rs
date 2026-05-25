@@ -30,24 +30,24 @@ impl WorldObjectDefinition {
 impl SolidObjectDefinition {
     fn bundle(&self) -> impl Bundle {
         make_solid_sprite(
-            self.position.as_vec2().extend(0.0),
-            self.size.as_vec2(),
-            self.color.as_color(),
+            self.position.extend(0.0),
+            self.size,
+            self.color,
         )
     }
 }
 
 impl SpikeObjectDefinition {
     fn bundle(&self, assets: ShapeAssets<'_>) -> impl Bundle {
-        let size = self.size.as_vec2();
+        let size = self.size;
 
         (
             HazardBox {
                 half_size: size * 0.5,
             },
             Mesh2d(assets.meshes.add(triangle(size))),
-            MeshMaterial2d(assets.materials.add(self.color.as_color())),
-            Transform::from_translation(self.position.as_vec2().extend(0.0)),
+            MeshMaterial2d(assets.materials.add(self.color)),
+            Transform::from_translation(self.position.extend(0.0)),
         )
     }
 }
@@ -60,8 +60,8 @@ impl JumpOrbObjectDefinition {
                 strength_px: self.strength_px,
             },
             Mesh2d(assets.meshes.add(Circle::new(self.radius))),
-            MeshMaterial2d(assets.materials.add(self.color.as_color())),
-            Transform::from_translation(self.position.as_vec2().extend(0.0)),
+            MeshMaterial2d(assets.materials.add(self.color)),
+            Transform::from_translation(self.position.extend(0.0)),
         )
     }
 }

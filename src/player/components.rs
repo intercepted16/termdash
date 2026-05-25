@@ -7,8 +7,8 @@ pub struct Velocity(pub Vec2);
 pub fn make_player(player: &PlayerDefinition) -> impl Bundle {
     (
         Player,
-        Transform::from_translation(player.spawn.as_vec2().extend(0.0)),
-        Sprite::from_color(player.color.as_color(), player.size.as_vec2()),
+        Transform::from_translation(player.spawn.extend(0.0)),
+        Sprite::from_color(player.color, player.size),
         Velocity(Vec2::ZERO),
     )
 }
