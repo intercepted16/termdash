@@ -4,7 +4,7 @@ use crate::player::components::{Player, Velocity};
 use crate::player::queries::Players;
 use crate::world::components::HazardBox;
 use crate::world::loading::{CurrentWorld, despawn_music, spawn_music};
-use crate::world::model::WorldDefinition;
+use crate::world::model::Level;
 use crate::world::queries::MusicEntities;
 use bevy::ecs::system::SystemParam;
 use bevy::math::bounding::{Aabb2d, IntersectsVolume};
@@ -39,18 +39,14 @@ fn reset_player(transform: &mut Transform, velocity: &mut Velocity, spawn: Vec2)
     transform.rotation = Quat::IDENTITY;
     velocity.0 = Vec2::ZERO;
 }
-pub fn completion_percent(player_x: f32, world: &WorldDefinition) -> u8 {
+pub fn completion_percent(player_x: f32, world: &Level) -> u8 {
     let start_x = world.player.spawn.x;
     let distance = (world.size.x - start_x).max(f32::EPSILON);
     (((player_x - start_x) / distance) * 100.0)
         .clamp(0.0, 100.0)
         .round() as u8
 }
-fn detect_player_death(
-    world: &WorldDefinition,
-    players: &mut Players,
-    hazards: &Hazards,
-) -> Option<u8> {
+fn detect_player_death(world: &Level, players: &mut Players, hazards: &Hazards) -> Option<u8> {
     let world_bottom = world.ground.y - world.size.y;
     for (transform, sprite, _) in players.iter() {
         let player_bounds = bounds_from_sprite(transform, sprite);
@@ -83,7 +79,7 @@ fn start_death_pause(
 }
 fn tick_death_pause(
     time: &Time,
-    world: &WorldDefinition,
+    world: &Level,
     death_state: &mut PlayerDeathState,
     players: &mut Players,
     commands: &mut Commands,

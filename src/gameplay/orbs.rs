@@ -5,12 +5,14 @@ use crate::player::components::Player;
 use crate::player::jump_pressed;
 use crate::player::queries::Players;
 use crate::world::components::JumpOrb;
+use crate::world::model::JumpOrbDef;
 use bevy::math::bounding::{BoundingCircle, IntersectsVolume};
 use bevy::prelude::*;
 use bevy_ratatui::event::KeyMessage;
 use bevy_ratatui_camera::RatatuiCamera;
 
-type JumpOrbs<'w, 's> = Query<'w, 's, (&'static Transform, &'static JumpOrb), Without<Player>>;
+type JumpOrbs<'w, 's> =
+    Query<'w, 's, (&'static Transform, &'static JumpOrbDef), (With<JumpOrb>, Without<Player>)>;
 
 pub fn activate_jump_orbs(
     mut keys: MessageReader<KeyMessage>,

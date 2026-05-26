@@ -11,7 +11,7 @@ use std::rc::Rc;
 use crate::AppState;
 use crate::gameplay::death::PlayerDeathState;
 use crate::menu::resources::MenuState;
-use crate::world::registry::WorldRegistry;
+use crate::world::registry::LevelRegistry;
 
 pub struct MenuUiPlugin;
 
@@ -32,7 +32,7 @@ impl Plugin for MenuUiPlugin {
 fn render_main_menu(
     mut ratatui: ResMut<RatatuiContext>,
     menu: Res<MenuState>,
-    world_registry: Res<WorldRegistry>,
+    world_registry: Res<LevelRegistry>,
 ) {
     let _ = ratatui.draw(|frame| {
         let layout = menu_layout(frame.area());
@@ -128,7 +128,7 @@ fn title_text(width: usize) -> Text<'static> {
     })
 }
 
-fn world_list_widget(world_registry: &WorldRegistry) -> List<'_> {
+fn world_list_widget(world_registry: &LevelRegistry) -> List<'_> {
     List::new(
         world_registry
             .worlds
@@ -146,7 +146,7 @@ fn world_list_widget(world_registry: &WorldRegistry) -> List<'_> {
     .highlight_symbol("> ")
 }
 
-fn list_state(menu: &MenuState, world_registry: &WorldRegistry) -> ListState {
+fn list_state(menu: &MenuState, world_registry: &LevelRegistry) -> ListState {
     let mut state = ListState::default();
     if !world_registry.worlds.is_empty() {
         state.select(Some(menu.selected_world));
@@ -154,7 +154,7 @@ fn list_state(menu: &MenuState, world_registry: &WorldRegistry) -> ListState {
     state
 }
 
-fn details_widget<'a>(menu: &MenuState, world_registry: &'a WorldRegistry) -> Paragraph<'a> {
+fn details_widget<'a>(menu: &MenuState, world_registry: &'a LevelRegistry) -> Paragraph<'a> {
     let description = world_registry
         .selected(menu.selected_world)
         .map(|world| world.description.as_str())

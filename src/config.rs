@@ -10,6 +10,13 @@ pub struct Config {
     pub visualizer: VisualizerConfig,
 }
 
+impl Config {
+    pub fn load() -> Self {
+    toml::from_str(include_str!("../assets/config.toml"))
+        .expect("failed to parse assets/config.toml")
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct GameConfig {
     pub fps: f64,
@@ -37,9 +44,4 @@ pub struct MenuConfig {
 #[derive(Debug, Deserialize)]
 pub struct VisualizerConfig {
     pub enabled: bool,
-}
-
-pub fn load_config() -> Config {
-    toml::from_str(include_str!("../assets/config.toml"))
-        .expect("failed to parse assets/config.toml")
 }

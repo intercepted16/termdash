@@ -1,14 +1,19 @@
-use crate::world::model::PlayerDefinition;
+use crate::world::model::PlayerDef;
 use bevy::prelude::*;
+
 #[derive(Component)]
 pub struct Player;
+
 #[derive(Component)]
 pub struct Velocity(pub Vec2);
-pub fn make_player(player: &PlayerDefinition) -> impl Bundle {
-    (
-        Player,
-        Transform::from_translation(player.spawn.extend(0.0)),
-        Sprite::from_color(player.color, player.size),
-        Velocity(Vec2::ZERO),
-    )
+
+impl Player {
+    pub fn bundle(def: &PlayerDef) -> impl Bundle {
+        (
+            Player,
+            Transform::from_translation(def.spawn.extend(0.0)),
+            Sprite::from_color(def.color, def.size),
+            Velocity(Vec2::ZERO),
+        )
+    }
 }

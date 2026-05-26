@@ -3,7 +3,7 @@ use crate::config::Config;
 use crate::menu::resources::MenuState;
 use crate::world::components::WorldMusic;
 use crate::world::loading::LoadWorldEvent;
-use crate::world::registry::WorldRegistry;
+use crate::world::registry::LevelRegistry;
 use bevy::prelude::*;
 use bevy_ratatui::event::KeyMessage;
 use ratatui::crossterm::event::{KeyCode as TerminalKeyCode, KeyEventKind};
@@ -51,7 +51,7 @@ fn main_menu_input(
     mut keys: MessageReader<KeyMessage>,
     mut key_latch: ResMut<MenuKeyLatch>,
     mut menu: ResMut<MenuState>,
-    world_registry: Res<WorldRegistry>,
+    world_registry: Res<LevelRegistry>,
     mut load_world_events: MessageWriter<LoadWorldEvent>,
     mut next_state: ResMut<NextState<AppState>>,
 ) {

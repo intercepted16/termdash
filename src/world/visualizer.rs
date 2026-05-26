@@ -18,9 +18,10 @@
 use crate::config::Config;
 use crate::core::camera::projection_scale_or;
 use crate::world::components::{AudioVisualizerBar, WorldEntity, WorldMusic};
-use crate::world::model::WorldDefinition;
+use crate::world::model::Level;
 use bevy::audio::AudioSinkPlayback;
 use bevy::prelude::*;
+
 use bevy_ratatui_camera::RatatuiCamera;
 
 const MIN_BAR_HEIGHT: f32 = 4.0;
@@ -40,8 +41,7 @@ pub struct AudioVisualizerBarState {
 
 pub fn spawn_audio_visualizer(
     commands: &mut Commands,
-    world: &WorldDefinition,
-    _music_path: &str,
+    world: &Level,
     config: &Config,
 ) {
     if !config.visualizer.enabled {

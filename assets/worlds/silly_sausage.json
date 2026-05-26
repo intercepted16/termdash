@@ -36,7 +36,13 @@
         "alpha": 1.0
       }
     },
-    "segments": []
+    "segments": [
+      {
+        "start_x": 0.0,
+        "end_x": 2400.0,
+        "width": 2400.0
+      }
+    ]
   },
   "objects": []
 }

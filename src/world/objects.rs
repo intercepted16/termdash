@@ -1,7 +1,5 @@
 use crate::world::components::*;
-use crate::world::model::{
-    JumpOrbObjectDefinition, SolidObjectDefinition, SpikeObjectDefinition, WorldObjectDefinition,
-};
+use crate::world::model::{JumpOrbDef, Solid, Spike, WorldObject};
 use bevy::prelude::*;
 
 pub struct ShapeAssets<'a> {
@@ -9,7 +7,7 @@ pub struct ShapeAssets<'a> {
     pub materials: &'a mut Assets<ColorMaterial>,
 }
 
-impl WorldObjectDefinition {
+impl WorldObject {
     pub fn spawn(&self, commands: &mut Commands, assets: ShapeAssets<'_>) {
         let mut entity = commands.spawn(WorldEntity);
 
@@ -27,17 +25,13 @@ impl WorldObjectDefinition {
     }
 }
 
-impl SolidObjectDefinition {
+impl Solid {
     fn bundle(&self) -> impl Bundle {
-        make_solid_sprite(
-            self.position.extend(0.0),
-            self.size,
-            self.color,
-        )
+        make_solid_sprite(self.position.extend(0.0), self.size, self.color)
     }
 }
 
-impl SpikeObjectDefinition {
+impl Spike {
     fn bundle(&self, assets: ShapeAssets<'_>) -> impl Bundle {
         let size = self.size;
 
@@ -52,13 +46,11 @@ impl SpikeObjectDefinition {
     }
 }
 
-impl JumpOrbObjectDefinition {
+impl JumpOrbDef {
     fn bundle(&self, assets: ShapeAssets<'_>) -> impl Bundle {
         (
-            JumpOrb {
-                radius: self.radius,
-                strength_px: self.strength_px,
-            },
+            JumpOrb,
+            self.clone(),
             Mesh2d(assets.meshes.add(Circle::new(self.radius))),
             MeshMaterial2d(assets.materials.add(self.color)),
             Transform::from_translation(self.position.extend(0.0)),

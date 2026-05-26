@@ -1,26 +1,27 @@
-use super::model::*;
-use bevy::prelude::*;
+use crate::world::model::Level;
+
+use bevy::prelude::Resource;
 use std::fs;
 use std::path::Path;
 
 #[derive(Resource)]
-pub struct WorldRegistry {
-    pub worlds: Vec<WorldDefinition>,
+pub struct LevelRegistry {
+    pub worlds: Vec<Level>,
 }
 
-impl WorldRegistry {
+impl LevelRegistry {
     pub fn load() -> Result<Self, String> {
         Ok(Self {
-            worlds: load_worlds_from_assets()?,
+            worlds: load_levels()?,
         })
     }
 
-    pub fn selected(&self, index: usize) -> Option<&WorldDefinition> {
+    pub fn selected(&self, index: usize) -> Option<&Level> {
         self.worlds.get(index)
     }
 }
 
-fn load_worlds_from_assets() -> Result<Vec<WorldDefinition>, String> {
+fn load_levels() -> Result<Vec<Level>, String> {
     let world_dir = Path::new("assets/worlds");
     if !world_dir.exists() {
         return Ok(Vec::new());
@@ -39,7 +40,7 @@ fn load_worlds_from_assets() -> Result<Vec<WorldDefinition>, String> {
         .map(|path| {
             let contents =
                 fs::read_to_string(&path).map_err(|err| format!("{}: {err}", path.display()))?;
-            serde_json::from_str::<WorldDefinition>(&contents)
+            serde_json::from_str::<Level>(&contents)
                 .map_err(|err| format!("{}: {err}", path.display()))
         })
         .collect()

@@ -1,27 +1,19 @@
-use crate::world::model::{GroundDefinition, GroundSegmentDefinition, WorldDefinition};
+use crate::world::model::{Ground, GroundSegment};
 use bevy::prelude::*;
-macro_rules! marker_components {
+
+macro_rules! components {
     ($($component:ident),* $(,)?) => {
         $(#[derive(Component)] pub struct $component;)*
     };
 }
-marker_components!(WorldEntity, Solid, WorldMusic, AudioVisualizerBar);
+components!(WorldEntity, Solid, WorldMusic, AudioVisualizerBar, JumpOrb);
 
 #[derive(Component)]
 pub struct HazardBox {
     pub half_size: Vec2,
 }
 
-#[derive(Component)]
-pub struct JumpOrb {
-    pub radius: f32,
-    pub strength_px: f32,
-}
-
-pub fn make_ground_segment(
-    ground: &GroundDefinition,
-    segment: &GroundSegmentDefinition,
-) -> impl Bundle {
+pub fn make_ground_segment(ground: &Ground, segment: &GroundSegment) -> impl Bundle {
     (
         WorldEntity,
         make_solid_sprite(
@@ -30,12 +22,6 @@ pub fn make_ground_segment(
             ground.color,
         ),
     )
-}
-pub fn default_ground_segment(world: &WorldDefinition) -> GroundSegmentDefinition {
-    GroundSegmentDefinition {
-        start_x: 0.0,
-        width: world.size.x,
-    }
 }
 pub fn make_solid_sprite(position: Vec3, size: Vec2, color: Color) -> impl Bundle {
     (
