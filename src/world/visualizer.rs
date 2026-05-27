@@ -39,11 +39,7 @@ pub struct AudioVisualizerBarState {
     phase: f32,
 }
 
-pub fn spawn_audio_visualizer(
-    commands: &mut Commands,
-    world: &Level,
-    config: &Config,
-) {
+pub fn spawn_audio_visualizer(commands: &mut Commands, world: &Level, config: &Config) {
     if !config.visualizer.enabled {
         return;
     }

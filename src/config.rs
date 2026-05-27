@@ -12,8 +12,8 @@ pub struct Config {
 
 impl Config {
     pub fn load() -> Self {
-    toml::from_str(include_str!("../assets/config.toml"))
-        .expect("failed to parse assets/config.toml")
+        toml::from_str(include_str!("../assets/config.toml"))
+            .expect("failed to parse assets/config.toml")
     }
 }
 

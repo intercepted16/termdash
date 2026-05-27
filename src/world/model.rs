@@ -1,3 +1,4 @@
+use crate::world::components::{Solid, WorldEntity};
 use bevy::color::Color;
 use bevy::prelude::*;
 use serde::de::Error;
@@ -57,16 +58,27 @@ pub struct GroundSegment {
     pub width: f32,
 }
 
+impl GroundSegment {
+    pub fn make(&self, ground: &Ground) -> impl Bundle {
+        (
+            WorldEntity,
+            Solid,
+            Transform::from_translation(Vec3::new(self.start_x + self.width * 0.5, ground.y, 0.0)),
+            Sprite::from_color(ground.color, Vec2::new(self.width, ground.height)),
+        )
+    }
+}
+
 #[derive(Clone, Debug, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum WorldObject {
-    Solid(Solid),
+    Solid(SolidDef),
     Spike(Spike),
     JumpOrb(JumpOrbDef),
 }
 
 #[derive(Clone, Debug, Deserialize)]
-pub struct Solid {
+pub struct SolidDef {
     pub position: Vec2,
     pub size: Vec2,
     pub color: Color,

@@ -1,5 +1,5 @@
 use crate::world::components::*;
-use crate::world::model::{JumpOrbDef, Solid, Spike, WorldObject};
+use crate::world::model::{JumpOrbDef, SolidDef, Spike, WorldObject};
 use bevy::prelude::*;
 
 pub struct ShapeAssets<'a> {
@@ -25,9 +25,13 @@ impl WorldObject {
     }
 }
 
-impl Solid {
+impl SolidDef {
     fn bundle(&self) -> impl Bundle {
-        make_solid_sprite(self.position.extend(0.0), self.size, self.color)
+        (
+            Solid,
+            Transform::from_translation(self.position.extend(0.0)),
+            Sprite::from_color(self.color, self.size),
+        )
     }
 }
 

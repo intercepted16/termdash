@@ -41,7 +41,7 @@ pub fn load_world(
         }
 
         for segment in world.ground.segments.iter() {
-            commands.spawn(make_ground_segment(&world.ground, segment));
+            commands.spawn(segment.make(&world.ground));
         }
 
         for object in &world.objects {
