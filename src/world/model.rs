@@ -75,6 +75,7 @@ pub enum WorldObject {
     Solid(SolidDef),
     Spike(Spike),
     JumpOrb(JumpOrbDef),
+    JumpPad(JumpPadDef),
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -95,6 +96,14 @@ pub struct Spike {
 pub struct JumpOrbDef {
     pub position: Vec2,
     pub radius: f32,
+    pub color: Color,
+    pub strength_px: f32,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct JumpPadDef {
+    pub position: Vec2,
+    pub size: Vec2,
     pub color: Color,
     pub strength_px: f32,
 }

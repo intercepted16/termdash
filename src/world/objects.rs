@@ -1,5 +1,5 @@
 use crate::world::components::*;
-use crate::world::model::{JumpOrbDef, SolidDef, Spike, WorldObject};
+use crate::world::model::{JumpOrbDef, JumpPadDef, SolidDef, Spike, WorldObject};
 use bevy::prelude::*;
 
 pub struct ShapeAssets<'a> {
@@ -21,6 +21,9 @@ impl WorldObject {
             Self::JumpOrb(object) => {
                 entity.insert(object.bundle(assets));
             }
+            Self::JumpPad(object) => {
+                entity.insert(object.bundle());
+            }
         }
     }
 }
@@ -40,8 +43,12 @@ impl Spike {
         let size = self.size;
 
         (
-            HazardBox {
-                half_size: size * 0.5,
+            PlayerTrigger {
+                activation: TriggerActivation::Touch,
+                shape: TriggerShape::Rect {
+                    half_size: size * 0.5,
+                },
+                effect: TriggerEffect::KillPlayer,
             },
             Mesh2d(assets.meshes.add(triangle(size))),
             MeshMaterial2d(assets.materials.add(self.color)),
@@ -53,11 +60,32 @@ impl Spike {
 impl JumpOrbDef {
     fn bundle(&self, assets: ShapeAssets<'_>) -> impl Bundle {
         (
-            JumpOrb,
-            self.clone(),
+            PlayerTrigger {
+                activation: TriggerActivation::JumpPressed,
+                shape: TriggerShape::Circle {
+                    radius: self.radius,
+                },
+                effect: TriggerEffect::SetMinVerticalSpeedPx(self.strength_px),
+            },
             Mesh2d(assets.meshes.add(Circle::new(self.radius))),
             MeshMaterial2d(assets.materials.add(self.color)),
             Transform::from_translation(self.position.extend(0.0)),
+        )
+    }
+}
+
+impl JumpPadDef {
+    fn bundle(&self) -> impl Bundle {
+        (
+            PlayerTrigger {
+                activation: TriggerActivation::Touch,
+                shape: TriggerShape::Rect {
+                    half_size: self.size * 0.5,
+                },
+                effect: TriggerEffect::SetMinVerticalSpeedPx(self.strength_px),
+            },
+            Transform::from_translation(self.position.extend(0.0)),
+            Sprite::from_color(self.color, self.size),
         )
     }
 }

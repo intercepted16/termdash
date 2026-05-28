@@ -1,21 +1,20 @@
 use crate::AppState;
 use crate::config::Config;
-use crate::core::collision::bounds_from_sprite;
 use crate::player::components::{Player, Velocity};
 use crate::player::queries::Players;
-use crate::world::components::HazardBox;
 use crate::world::loading::{CurrentWorld, despawn_music, spawn_music};
 use crate::world::model::Level;
 use crate::world::queries::MusicEntities;
-use bevy::ecs::system::SystemParam;
-use bevy::math::bounding::{Aabb2d, IntersectsVolume};
 use bevy::prelude::*;
-
-type Hazards<'w, 's> = Query<'w, 's, (&'static Transform, &'static HazardBox), Without<Player>>;
 
 #[derive(Resource)]
 pub struct DeathPause {
     pub timer: Timer,
+    pub percent: u8,
+}
+
+#[derive(Message)]
+pub struct KillPlayerEvent {
     pub percent: u8,
 }
 
@@ -28,12 +27,6 @@ impl DeathPause {
     }
 }
 
-#[derive(SystemParam)]
-pub struct HazardParams<'w, 's> {
-    players: Players<'w, 's>,
-    hazards: Hazards<'w, 's>,
-    music: MusicEntities<'w, 's>,
-}
 fn reset_player(transform: &mut Transform, velocity: &mut Velocity, spawn: Vec2) {
     transform.translation = spawn.extend(0.0);
     transform.rotation = Quat::IDENTITY;
@@ -46,20 +39,30 @@ pub fn completion_percent(player_x: f32, world: &Level) -> u8 {
         .clamp(0.0, 100.0)
         .round() as u8
 }
-fn detect_player_death(world: &Level, players: &mut Players, hazards: &Hazards) -> Option<u8> {
+
+pub fn fell_out_of_world(transform: &Transform, world: &Level) -> bool {
     let world_bottom = world.ground.y - world.size.y;
-    for (transform, sprite, _) in players.iter() {
-        let player_bounds = bounds_from_sprite(transform, sprite);
-        let hit_hazard = hazards.iter().any(|(transform, area)| {
-            player_bounds.intersects(&Aabb2d::new(transform.translation.xy(), area.half_size))
-        });
-        let fell_out_of_world = transform.translation.y < world_bottom;
-        if hit_hazard || fell_out_of_world {
-            return Some(completion_percent(transform.translation.x, world));
+    transform.translation.y < world_bottom
+}
+
+pub fn emit_out_of_world_deaths(
+    current_world: Res<CurrentWorld>,
+    players: Query<&Transform, With<Player>>,
+    mut deaths: MessageWriter<KillPlayerEvent>,
+) {
+    let Some(world) = current_world.definition.as_ref() else {
+        return;
+    };
+
+    for transform in &players {
+        if fell_out_of_world(transform, world) {
+            deaths.write(KillPlayerEvent {
+                percent: completion_percent(transform.translation.x, world),
+            });
         }
     }
-    None
 }
+
 fn start_death_pause(
     percent: u8,
     config: &Config,
@@ -82,26 +85,25 @@ fn start_death_pause(
 
 pub fn begin_death_pause(
     config: Res<Config>,
-    current_world: Res<CurrentWorld>,
     mut commands: Commands,
     mut next_state: ResMut<NextState<AppState>>,
     mut pause: ResMut<DeathPause>,
-    mut hazards: HazardParams,
+    mut players: Players,
+    music: MusicEntities,
+    mut deaths: MessageReader<KillPlayerEvent>,
 ) {
-    let Some(world) = current_world.definition.as_ref() else {
+    let Some(death) = deaths.read().next() else {
         return;
     };
-    let Some(percent) = detect_player_death(world, &mut hazards.players, &hazards.hazards) else {
-        return;
-    };
+
     start_death_pause(
-        percent,
+        death.percent,
         &config,
         &mut next_state,
         &mut pause,
-        &mut hazards.players,
+        &mut players,
         &mut commands,
-        &hazards.music,
+        &music,
     );
 }
 
