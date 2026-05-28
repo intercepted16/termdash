@@ -1,6 +1,7 @@
 mod config;
 mod core;
 mod gameplay;
+mod input;
 mod menu;
 mod player;
 mod state;
@@ -22,6 +23,8 @@ use std::time::Duration;
 
 pub use state::AppState;
 
+use crate::input::InputPlugin;
+
 fn main() {
     let config = Config::load();
     let frame_duration = Duration::from_secs_f64(1.0 / config.game.fps);
@@ -42,6 +45,7 @@ fn main() {
         PlayerPlugin,
         GameplayPlugin,
         MenuUiPlugin,
+        InputPlugin,
     ))
     .insert_resource(config)
     .init_state::<AppState>()

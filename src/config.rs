@@ -6,7 +6,6 @@ pub struct Config {
     pub game: GameConfig,
     pub camera: CameraConfig,
     pub player: PlayerConfig,
-    pub menu: MenuConfig,
     pub visualizer: VisualizerConfig,
 }
 
@@ -34,11 +33,6 @@ pub struct PlayerConfig {
     pub gravity_px: f32,
     pub jump_speed_px: f32,
     pub death_pause_seconds: f32,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct MenuConfig {
-    pub key_cooldown_seconds: f32,
 }
 
 #[derive(Debug, Deserialize)]
