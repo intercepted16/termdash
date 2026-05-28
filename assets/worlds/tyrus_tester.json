@@ -158,6 +158,26 @@
       }
     },
     {
+      "kind": "jump_pad",
+      "position": [
+        1040.0,
+        -218.0
+      ],
+      "size": [
+        48.0,
+        12.0
+      ],
+      "color": {
+        "LinearRgba": {
+          "red": 0.12,
+          "green": 0.86,
+          "blue": 1.0,
+          "alpha": 1.0
+        }
+      },
+      "strength_px": 220.0
+    },
+    {
       "kind": "spike",
       "position": [
         1350.0,
