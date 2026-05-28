@@ -1,3 +1,4 @@
+use crate::gameplay::death::DeathPause;
 use bevy::prelude::*;
 use bevy_ratatui::RatatuiContext;
 use bevy_ratatui_camera::RatatuiCameraWidget;
@@ -9,7 +10,6 @@ use ratatui::widgets::{Block, Borders, Clear, List, ListItem, ListState, Paragra
 use std::rc::Rc;
 
 use crate::AppState;
-use crate::gameplay::death::PlayerDeathState;
 use crate::menu::resources::MenuState;
 use crate::world::registry::LevelRegistry;
 
@@ -22,6 +22,10 @@ impl Plugin for MenuUiPlugin {
             render_main_menu.run_if(in_state(AppState::MainMenu)),
         )
         .add_systems(PostUpdate, render_game.run_if(in_state(AppState::Playing)))
+        .add_systems(
+            PostUpdate,
+            render_dead_game.run_if(in_state(AppState::Dead)),
+        )
         .add_systems(
             PostUpdate,
             render_paused_game.run_if(in_state(AppState::Paused)),
@@ -59,14 +63,17 @@ fn render_main_menu(
 fn render_game(
     mut ratatui: ResMut<RatatuiContext>,
     mut camera_widget: Single<&mut RatatuiCameraWidget>,
-    death_state: Res<PlayerDeathState>,
 ) {
-    let percent = death_state.percent();
+    draw_camera(&mut ratatui, &mut camera_widget, |_| {});
+}
 
+fn render_dead_game(
+    mut ratatui: ResMut<RatatuiContext>,
+    mut camera_widget: Single<&mut RatatuiCameraWidget>,
+    pause: Res<DeathPause>,
+) {
     draw_camera(&mut ratatui, &mut camera_widget, |frame| {
-        if let Some(percent) = percent {
-            render_progress(frame, percent);
-        }
+        render_progress(frame, pause.percent);
     });
 }
 

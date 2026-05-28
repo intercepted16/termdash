@@ -2,7 +2,6 @@ use crate::config::Config;
 use crate::core::camera::world_units_per_pixel;
 use crate::core::collision::{GROUND_EPSILON, overlaps_y};
 use crate::core::collision::{bounds_at, bounds_from_sprite, overlaps_x};
-use crate::gameplay::death::PlayerDeathState;
 use crate::player::components::Player;
 use crate::player::jump_pressed;
 use crate::player::queries::Players;
@@ -49,15 +48,10 @@ pub fn move_player(
     config: Res<Config>,
     time: Res<Time>,
     mut keys: MessageReader<KeyMessage>,
-    death_state: Res<PlayerDeathState>,
     current_world: Res<CurrentWorld>,
     camera_projection: Single<&Projection, With<RatatuiCamera>>,
     queries: (Players, SolidSprites),
 ) {
-    if death_state.is_active() {
-        keys.clear();
-        return;
-    }
     let (mut players, solid_sprites) = queries;
     let dt = time.delta_secs();
     let world_units_per_pixel = world_units_per_pixel(camera_projection.into_inner());

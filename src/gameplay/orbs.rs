@@ -1,6 +1,5 @@
 use crate::core::camera::world_units_per_pixel;
 use crate::core::collision::bounds_from_sprite;
-use crate::gameplay::death::PlayerDeathState;
 use crate::player::components::Player;
 use crate::player::jump_pressed;
 use crate::player::queries::Players;
@@ -16,15 +15,10 @@ type JumpOrbs<'w, 's> =
 
 pub fn activate_jump_orbs(
     mut keys: MessageReader<KeyMessage>,
-    death_state: Res<PlayerDeathState>,
     camera_projection: Single<&Projection, With<RatatuiCamera>>,
     mut players: Players,
     orbs: JumpOrbs,
 ) {
-    if death_state.is_active() {
-        return;
-    }
-
     if !jump_pressed(&mut keys) {
         return;
     }

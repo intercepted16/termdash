@@ -6,4 +6,5 @@ pub enum AppState {
     MainMenu,
     Playing,
     Paused,
+    Dead,
 }

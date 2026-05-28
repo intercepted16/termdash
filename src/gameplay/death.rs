@@ -1,3 +1,4 @@
+use crate::AppState;
 use crate::config::Config;
 use crate::core::collision::bounds_from_sprite;
 use crate::player::components::{Player, Velocity};
@@ -12,22 +13,21 @@ use bevy::prelude::*;
 
 type Hazards<'w, 's> = Query<'w, 's, (&'static Transform, &'static HazardBox), Without<Player>>;
 
-struct DeathPause {
-    timer: Timer,
-    percent: u8,
+#[derive(Resource)]
+pub struct DeathPause {
+    pub timer: Timer,
+    pub percent: u8,
 }
-#[derive(Resource, Default)]
-pub struct PlayerDeathState {
-    pause: Option<DeathPause>,
-}
-impl PlayerDeathState {
-    pub fn is_active(&self) -> bool {
-        self.pause.is_some()
-    }
-    pub fn percent(&self) -> Option<u8> {
-        self.pause.as_ref().map(|pause| pause.percent)
+
+impl DeathPause {
+    pub fn new(seconds: f32) -> Self {
+        Self {
+            timer: Timer::from_seconds(seconds, TimerMode::Once),
+            percent: 0,
+        }
     }
 }
+
 #[derive(SystemParam)]
 pub struct HazardParams<'w, 's> {
     players: Players<'w, 's>,
@@ -63,7 +63,8 @@ fn detect_player_death(world: &Level, players: &mut Players, hazards: &Hazards) 
 fn start_death_pause(
     percent: u8,
     config: &Config,
-    death_state: &mut PlayerDeathState,
+    next_state: &mut NextState<AppState>,
+    pause: &mut DeathPause,
     players: &mut Players,
     commands: &mut Commands,
     music: &MusicEntities,
@@ -72,21 +73,55 @@ fn start_death_pause(
         velocity.0 = Vec2::ZERO;
     }
     despawn_music(commands, music);
-    death_state.pause = Some(DeathPause {
+    *pause = DeathPause {
         timer: Timer::from_seconds(config.player.death_pause_seconds, TimerMode::Once),
         percent,
-    });
+    };
+    next_state.set(AppState::Dead);
 }
-fn tick_death_pause(
-    time: &Time,
-    world: &Level,
-    death_state: &mut PlayerDeathState,
-    players: &mut Players,
-    commands: &mut Commands,
-    asset_server: &AssetServer,
-    config: &Config,
+
+pub fn begin_death_pause(
+    config: Res<Config>,
+    current_world: Res<CurrentWorld>,
+    mut commands: Commands,
+    mut next_state: ResMut<NextState<AppState>>,
+    mut pause: ResMut<DeathPause>,
+    mut hazards: HazardParams,
 ) {
-    let Some(pause) = death_state.pause.as_mut() else {
+    let Some(world) = current_world.definition.as_ref() else {
+        return;
+    };
+    let Some(percent) = detect_player_death(world, &mut hazards.players, &hazards.hazards) else {
+        return;
+    };
+    start_death_pause(
+        percent,
+        &config,
+        &mut next_state,
+        &mut pause,
+        &mut hazards.players,
+        &mut commands,
+        &hazards.music,
+    );
+}
+
+type DeathResources<'w> = (
+    Res<'w, Config>,
+    Res<'w, Time>,
+    Res<'w, CurrentWorld>,
+    Res<'w, AssetServer>,
+);
+
+pub fn tick_death_pause(
+    resources: DeathResources,
+    mut commands: Commands,
+    mut next_state: ResMut<NextState<AppState>>,
+    mut pause: ResMut<DeathPause>,
+    mut players: Players,
+) {
+    let (config, time, current_world, asset_server) = resources;
+
+    let Some(world) = current_world.definition.as_ref() else {
         return;
     };
     pause.timer.tick(time.delta());
@@ -97,43 +132,6 @@ fn tick_death_pause(
     for (mut transform, _, mut velocity) in players.iter_mut() {
         reset_player(&mut transform, &mut velocity, spawn);
     }
-    spawn_music(commands, asset_server, world, config);
-    death_state.pause = None;
-}
-#[allow(clippy::too_many_arguments)]
-pub fn handle_death(
-    config: Res<Config>,
-    time: Res<Time>,
-    current_world: Res<CurrentWorld>,
-    asset_server: Res<AssetServer>,
-    mut commands: Commands,
-    mut death_state: ResMut<PlayerDeathState>,
-    mut hazards: HazardParams,
-) {
-    let Some(world) = current_world.definition.as_ref() else {
-        return;
-    };
-    if death_state.is_active() {
-        tick_death_pause(
-            &time,
-            world,
-            &mut death_state,
-            &mut hazards.players,
-            &mut commands,
-            &asset_server,
-            &config,
-        );
-        return;
-    }
-    let Some(percent) = detect_player_death(world, &mut hazards.players, &hazards.hazards) else {
-        return;
-    };
-    start_death_pause(
-        percent,
-        &config,
-        &mut death_state,
-        &mut hazards.players,
-        &mut commands,
-        &hazards.music,
-    );
+    spawn_music(&mut commands, &asset_server, world, &config);
+    next_state.set(AppState::Playing);
 }
