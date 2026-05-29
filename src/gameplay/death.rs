@@ -1,7 +1,7 @@
 use crate::AppState;
 use crate::config::Config;
 use crate::player::components::{Player, Velocity};
-use crate::player::queries::Players;
+use crate::player::queries::PlayerQuery;
 use crate::world::loading::{CurrentWorld, despawn_music, spawn_music};
 use crate::world::model::Level;
 use crate::world::queries::MusicEntities;
@@ -68,13 +68,12 @@ fn start_death_pause(
     config: &Config,
     next_state: &mut NextState<AppState>,
     pause: &mut DeathPause,
-    players: &mut Players,
+    player: PlayerQuery,
     commands: &mut Commands,
     music: &MusicEntities,
 ) {
-    for (_, _, mut velocity) in players.iter_mut() {
-        velocity.0 = Vec2::ZERO;
-    }
+    let (_, _, mut velocity, _) = player.into_inner();
+    velocity.0 = Vec2::ZERO;
     despawn_music(commands, music);
     *pause = DeathPause {
         timer: Timer::from_seconds(config.player.death_pause_seconds, TimerMode::Once),
@@ -88,7 +87,7 @@ pub fn begin_death_pause(
     mut commands: Commands,
     mut next_state: ResMut<NextState<AppState>>,
     mut pause: ResMut<DeathPause>,
-    mut players: Players,
+    player: PlayerQuery,
     music: MusicEntities,
     mut deaths: MessageReader<KillPlayerEvent>,
 ) {
@@ -101,7 +100,7 @@ pub fn begin_death_pause(
         &config,
         &mut next_state,
         &mut pause,
-        &mut players,
+        player,
         &mut commands,
         &music,
     );
@@ -119,7 +118,7 @@ pub fn tick_death_pause(
     mut commands: Commands,
     mut next_state: ResMut<NextState<AppState>>,
     mut pause: ResMut<DeathPause>,
-    mut players: Players,
+    player: PlayerQuery,
 ) {
     let (config, time, current_world, asset_server) = resources;
 
@@ -131,9 +130,9 @@ pub fn tick_death_pause(
         return;
     }
     let spawn = world.player.spawn;
-    for (mut transform, _, mut velocity) in players.iter_mut() {
-        reset_player(&mut transform, &mut velocity, spawn);
-    }
+    let (mut transform, _, mut velocity, _) = player.into_inner();
+
+    reset_player(&mut transform, &mut velocity, spawn);
     spawn_music(&mut commands, &asset_server, world, &config);
     next_state.set(AppState::Playing);
 }

@@ -76,6 +76,7 @@ pub enum WorldObject {
     Spike(Spike),
     JumpOrb(JumpOrbDef),
     JumpPad(JumpPadDef),
+    GravityPortal(GravityPortalDef),
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -83,6 +84,12 @@ pub struct SolidDef {
     pub position: Vec2,
     pub size: Vec2,
     pub color: Color,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct GravityPortalDef {
+    pub position: Vec2,
+    pub color: Color, // no multiplier since it's based on color
 }
 
 #[derive(Clone, Debug, Deserialize)]

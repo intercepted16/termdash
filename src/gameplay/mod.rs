@@ -6,7 +6,7 @@ use crate::config::Config;
 use crate::gameplay::death::{
     DeathPause, KillPlayerEvent, begin_death_pause, emit_out_of_world_deaths, tick_death_pause,
 };
-use crate::gameplay::triggers::apply_player_triggers;
+use crate::gameplay::triggers::{TriggerState, apply_player_triggers};
 use crate::player::move_player;
 use crate::world::components::WorldEntity;
 use crate::world::loading::CurrentWorld;
@@ -18,6 +18,7 @@ impl Plugin for GameplayPlugin {
     fn build(&self, app: &mut App) {
         // TODO: use preexisting config resource
         app.insert_resource(DeathPause::new(Config::load().player.death_pause_seconds))
+            .init_resource::<TriggerState>()
             .add_message::<KillPlayerEvent>()
             .add_systems(OnEnter(AppState::MainMenu), cleanup_gameplay);
         app.add_systems(
@@ -37,10 +38,12 @@ impl Plugin for GameplayPlugin {
 fn cleanup_gameplay(
     mut commands: Commands,
     mut current_world: ResMut<CurrentWorld>,
+    mut trigger_state: ResMut<TriggerState>,
     entities: Query<Entity, With<WorldEntity>>,
 ) {
     for entity in &entities {
         commands.entity(entity).despawn();
     }
     current_world.definition = None;
+    trigger_state.clear();
 }

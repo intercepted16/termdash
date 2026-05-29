@@ -27,21 +27,21 @@ impl Plugin for MenuPlugin {
 }
 
 fn main_menu_input(
-    mut input: ResMut<InputState>,
+    input: Res<InputState>,
     mut menu: ResMut<MenuState>,
     world_registry: Res<LevelRegistry>,
     mut load_world_events: MessageWriter<LoadWorldEvent>,
     mut next_state: ResMut<NextState<AppState>>,
 ) {
-    if just_pressed(&mut input, TerminalKeyCode::Up) {
+    if just_pressed(&input, TerminalKeyCode::Up) {
         menu.select_previous();
     }
 
-    if just_pressed(&mut input, TerminalKeyCode::Down) {
+    if just_pressed(&input, TerminalKeyCode::Down) {
         menu.select_next(world_registry.worlds.len());
     }
 
-    if just_pressed(&mut input, TerminalKeyCode::Enter) {
+    if just_pressed(&input, TerminalKeyCode::Enter) {
         load_world_events.write(LoadWorldEvent {
             index: menu.selected_world,
         });
@@ -50,18 +50,18 @@ fn main_menu_input(
     }
 }
 
-fn pause_input(mut input: ResMut<InputState>, mut next_state: ResMut<NextState<AppState>>) {
-    if just_pressed(&mut input, TerminalKeyCode::Esc) {
+fn pause_input(input: Res<InputState>, mut next_state: ResMut<NextState<AppState>>) {
+    if just_pressed(&input, TerminalKeyCode::Esc) {
         next_state.set(AppState::Paused);
     }
 }
 
-fn paused_menu_input(mut input: ResMut<InputState>, mut next_state: ResMut<NextState<AppState>>) {
-    if just_pressed(&mut input, TerminalKeyCode::Esc) {
+fn paused_menu_input(input: Res<InputState>, mut next_state: ResMut<NextState<AppState>>) {
+    if just_pressed(&input, TerminalKeyCode::Esc) {
         next_state.set(AppState::Playing);
     }
 
-    if just_pressed(&mut input, TerminalKeyCode::Enter) {
+    if just_pressed(&input, TerminalKeyCode::Enter) {
         next_state.set(AppState::MainMenu);
     }
 }

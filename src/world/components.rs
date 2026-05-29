@@ -30,4 +30,5 @@ pub enum TriggerShape {
 pub enum TriggerEffect {
     SetMinVerticalSpeedPx(f32),
     KillPlayer,
+    FlipGravity,
 }

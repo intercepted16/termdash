@@ -1,5 +1,5 @@
 use crate::world::components::*;
-use crate::world::model::{JumpOrbDef, JumpPadDef, SolidDef, Spike, WorldObject};
+use crate::world::model::{GravityPortalDef, JumpOrbDef, JumpPadDef, SolidDef, Spike, WorldObject};
 use bevy::prelude::*;
 
 pub struct ShapeAssets<'a> {
@@ -22,6 +22,9 @@ impl WorldObject {
                 entity.insert(object.bundle(assets));
             }
             Self::JumpPad(object) => {
+                entity.insert(object.bundle());
+            }
+            Self::GravityPortal(object) => {
                 entity.insert(object.bundle());
             }
         }
@@ -86,6 +89,22 @@ impl JumpPadDef {
             },
             Transform::from_translation(self.position.extend(0.0)),
             Sprite::from_color(self.color, self.size),
+        )
+    }
+}
+
+impl GravityPortalDef {
+    fn bundle(&self) -> impl Bundle {
+        (
+            PlayerTrigger {
+                activation: TriggerActivation::Touch,
+                shape: TriggerShape::Rect {
+                    half_size: Vec2::splat(16.0),
+                },
+                effect: TriggerEffect::FlipGravity,
+            },
+            Transform::from_translation(self.position.extend(0.0)),
+            Sprite::from_color(self.color, Vec2::splat(32.0)),
         )
     }
 }
