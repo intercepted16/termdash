@@ -1,6 +1,5 @@
 use crate::AppState;
 use crate::config::Config;
-use crate::core::constants::{GROUND_HEIGHT, GROUND_Y};
 use crate::player::components::Player;
 use crate::world::loading::CurrentWorld;
 use bevy::prelude::*;
@@ -43,7 +42,7 @@ pub fn follow_player(
         .definition
         .as_ref()
         .map(|world| world.ground.y - world.ground.height * 0.5)
-        .unwrap_or(GROUND_Y - GROUND_HEIGHT * 0.5);
+        .unwrap();
     let bottom_margin = world_height * config.camera.bottom_margin_fraction;
     camera_transform.translation.x = player.translation.x;
     camera_transform.translation.y = ground_bottom + world_height * 0.5 - bottom_margin;
