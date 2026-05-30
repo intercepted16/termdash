@@ -1,6 +1,7 @@
 use crate::AppState;
 use crate::input::{InputState, just_pressed};
 use crate::menu::resources::MenuState;
+use crate::menu::ui::render;
 use crate::world::components::WorldMusic;
 use crate::world::loading::LoadWorldEvent;
 use crate::world::registry::LevelRegistry;
@@ -15,14 +16,15 @@ impl Plugin for MenuPlugin {
             .add_systems(Update, main_menu_input.run_if(in_state(AppState::MainMenu)))
             .add_systems(Update, pause_input.run_if(in_state(AppState::Playing)))
             .add_systems(Update, paused_menu_input.run_if(in_state(AppState::Paused)))
-            .add_systems(OnEnter(AppState::Paused), set_world_music_paused::<true>)
+            .add_systems(OnEnter(AppState::Paused), music_playing::<true>)
             .add_systems(
                 OnTransition {
                     exited: AppState::Paused,
                     entered: AppState::Playing,
                 },
-                set_world_music_paused::<false>,
-            );
+                music_playing::<false>,
+            )
+            .add_systems(PostUpdate, render);
     }
 }
 
@@ -34,11 +36,11 @@ fn main_menu_input(
     mut next_state: ResMut<NextState<AppState>>,
 ) {
     if just_pressed(&input, TerminalKeyCode::Up) {
-        menu.select_previous();
+        menu.previous();
     }
 
     if just_pressed(&input, TerminalKeyCode::Down) {
-        menu.select_next(world_registry.worlds.len());
+        menu.next(world_registry.worlds.len());
     }
 
     if just_pressed(&input, TerminalKeyCode::Enter) {
@@ -66,7 +68,7 @@ fn paused_menu_input(input: Res<InputState>, mut next_state: ResMut<NextState<Ap
     }
 }
 
-fn set_world_music_paused<const PAUSED: bool>(music: Query<&AudioSink, With<WorldMusic>>) {
+fn music_playing<const PAUSED: bool>(music: Query<&AudioSink, With<WorldMusic>>) {
     for sink in &music {
         if PAUSED {
             sink.pause();

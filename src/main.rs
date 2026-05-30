@@ -10,7 +10,7 @@ mod world;
 use crate::config::Config;
 use crate::core::camera::CameraPlugin;
 use crate::gameplay::GameplayPlugin;
-use crate::menu::{MenuPlugin, MenuUiPlugin};
+use crate::menu::MenuPlugin;
 use crate::player::PlayerPlugin;
 use crate::world::WorldPlugin;
 use bevy::app::ScheduleRunnerPlugin;
@@ -44,7 +44,6 @@ fn main() {
         MenuPlugin,
         PlayerPlugin,
         GameplayPlugin,
-        MenuUiPlugin,
         InputPlugin,
     ))
     .insert_resource(config)
