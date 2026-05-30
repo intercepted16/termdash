@@ -26,12 +26,13 @@ impl TriggerState {
     }
 }
 
-pub fn just_entered(trigger_state: &mut TriggerState, entity: Entity, active: bool) -> bool {
-    if active {
-        trigger_state.active.insert(entity)
-    } else {
-        trigger_state.active.remove(&entity);
-        false
+fn intersects(shape: &TriggerShape, player: Aabb2d, transform: &Transform) -> bool {
+    let center = transform.translation.xy();
+
+    match shape {
+        TriggerShape::Circle { radius } => player.intersects(&BoundingCircle::new(center, *radius)),
+
+        TriggerShape::Rect { half_size } => player.intersects(&Aabb2d::new(center, *half_size)),
     }
 }
 
@@ -55,69 +56,44 @@ pub fn apply_player_triggers(
     let (player_transform, player_sprite, mut velocity, mut player) = player.into_inner();
     let player_bounds = bounds_from_sprite(&player_transform, player_sprite);
 
-    for (trigger_entity, trigger_transform, trigger) in &triggers {
-        if !trigger.activation.is_active(jump_pressed) {
+    for (entity, transform, trigger) in &triggers {
+        let activation_allowed = match trigger.activation {
+            TriggerActivation::Touch => true,
+            TriggerActivation::JumpPressed => jump_pressed,
+        };
+
+        if !activation_allowed {
             continue;
         }
 
-        let intersects_player = trigger
-            .shape
-            .intersects_player(player_bounds, trigger_transform);
+        let intersects = intersects(&trigger.shape, player_bounds, transform);
 
-        let just_entered = just_entered(
-            &mut trigger_state,
-            trigger_entity,
-            intersects_player && trigger.effect.enters_once(),
-        );
-
-        if !intersects_player {
+        if !intersects {
+            trigger_state.active.remove(&entity);
             continue;
         }
+
+        let just_entered = trigger_state.active.insert(entity);
 
         match trigger.effect {
             TriggerEffect::SetMinVerticalSpeedPx(speed_px) => {
-                let mut local_velocity_y = velocity.0.y * player.gravity_dir;
-                local_velocity_y = local_velocity_y.max(speed_px * world_units_per_pixel);
-                velocity.0.y = local_velocity_y * player.gravity_dir;
+                let current = velocity.0.y * player.gravity_dir;
+                let minimum = speed_px * world_units_per_pixel;
+
+                velocity.0.y = current.max(minimum) * player.gravity_dir;
             }
+
             TriggerEffect::KillPlayer => {
                 deaths.write(KillPlayerEvent {
                     percent: completion_percent(player_transform.translation.x, world),
                 });
             }
+
             TriggerEffect::FlipGravity => {
-                if !just_entered {
-                    continue;
+                if just_entered {
+                    player.gravity_dir *= -1.0;
                 }
-
-                player.gravity_dir *= -1.0;
             }
-        }
-    }
-}
-
-impl TriggerEffect {
-    fn enters_once(self) -> bool {
-        matches!(self, Self::FlipGravity)
-    }
-}
-
-impl TriggerActivation {
-    fn is_active(self, jump_pressed: bool) -> bool {
-        match self {
-            Self::Touch => true,
-            Self::JumpPressed => jump_pressed,
-        }
-    }
-}
-
-impl TriggerShape {
-    fn intersects_player(self, player: Aabb2d, trigger_transform: &Transform) -> bool {
-        let center = trigger_transform.translation.xy();
-
-        match self {
-            Self::Circle { radius } => player.intersects(&BoundingCircle::new(center, radius)),
-            Self::Rect { half_size } => player.intersects(&Aabb2d::new(center, half_size)),
         }
     }
 }

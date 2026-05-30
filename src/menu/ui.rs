@@ -137,6 +137,8 @@ pub fn render(
             }
 
             AppState::Dead => {
+                render_camera();
+
                 const FONT: [&str; 11] = [
                     "███|█ █|█ █|█ █|███",
                     " ██|  █|  █|  █| ███",
