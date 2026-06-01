@@ -9,8 +9,7 @@ use ratatui::{
 };
 
 use crate::{
-    AppState, gameplay::death::DeathPause, menu::resources::MenuState,
-    world::registry::LevelRegistry,
+    AppState, gameplay::death::DeathPause, menu::resources::MenuState, world::registry::Levels,
 };
 
 // Base, highlight and border styles
@@ -28,7 +27,7 @@ pub fn render(
     mut tui: ResMut<RatatuiContext>,
     state: Res<State<AppState>>,
     menu: Option<Res<MenuState>>,
-    worlds: Option<Res<LevelRegistry>>,
+    worlds: Option<Res<Levels>>,
     pause: Option<Res<DeathPause>>,
     mut camera: Option<Single<&mut RatatuiCameraWidget>>,
 ) {
@@ -77,7 +76,7 @@ pub fn render(
                 f.render_stateful_widget(
                     List::new(
                         worlds
-                            .worlds
+                            .0
                             .iter()
                             .map(|w| ListItem::new(Line::styled(format!("  {}", w.name), BASE))),
                     )
@@ -87,7 +86,7 @@ pub fn render(
                     list,
                     &mut {
                         let mut s = ListState::default();
-                        s.select((!worlds.worlds.is_empty()).then_some(menu.selected_world));
+                        s.select((!worlds.0.is_empty()).then_some(menu.selected_world));
                         s
                     },
                 );
@@ -95,7 +94,8 @@ pub fn render(
                 f.render_widget(
                     Paragraph::new(
                         worlds
-                            .selected(menu.selected_world)
+                            .0
+                            .get(menu.selected_world)
                             .map(|w| w.description.as_str())
                             .unwrap_or("No worlds available."),
                     )

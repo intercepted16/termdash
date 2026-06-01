@@ -4,7 +4,7 @@ use crate::world::components::*;
 use crate::world::model::Level;
 use crate::world::objects::ShapeAssets;
 use crate::world::queries::MusicEntities;
-use crate::world::registry::LevelRegistry;
+use crate::world::registry::Levels;
 use crate::world::visualizer::spawn_audio_visualizer;
 use bevy::prelude::*;
 
@@ -19,7 +19,7 @@ pub struct LoadWorldEvent {
 }
 
 pub fn load_world(
-    resources: (Res<Config>, Res<AssetServer>, Res<LevelRegistry>),
+    resources: (Res<Config>, Res<AssetServer>, Res<Levels>),
     render_assets: (ResMut<Assets<Mesh>>, ResMut<Assets<ColorMaterial>>),
     mut commands: Commands,
     mut events: MessageReader<LoadWorldEvent>,
@@ -31,7 +31,7 @@ pub fn load_world(
     let (mut meshes, mut materials) = render_assets;
 
     for event in events.read() {
-        let Some(world) = registry.selected(event.index) else {
+        let Some(world) = registry.0.get(event.index) else {
             continue;
         };
 

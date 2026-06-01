@@ -4,7 +4,7 @@ use crate::menu::resources::MenuState;
 use crate::menu::ui::render;
 use crate::world::components::WorldMusic;
 use crate::world::loading::LoadWorldEvent;
-use crate::world::registry::LevelRegistry;
+use crate::world::registry::Levels;
 use bevy::prelude::*;
 use ratatui::crossterm::event::KeyCode as TerminalKeyCode;
 
@@ -31,7 +31,7 @@ impl Plugin for MenuPlugin {
 fn main_menu_input(
     input: Res<InputState>,
     mut menu: ResMut<MenuState>,
-    world_registry: Res<LevelRegistry>,
+    world_registry: Res<Levels>,
     mut load_world_events: MessageWriter<LoadWorldEvent>,
     mut next_state: ResMut<NextState<AppState>>,
 ) {
@@ -40,7 +40,7 @@ fn main_menu_input(
     }
 
     if just_pressed(&input, TerminalKeyCode::Down) {
-        menu.next(world_registry.worlds.len());
+        menu.next(world_registry.0.len());
     }
 
     if just_pressed(&input, TerminalKeyCode::Enter) {
