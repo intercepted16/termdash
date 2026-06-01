@@ -1,0 +1,30 @@
+{
+	"solid": {
+		"shape": { "type": "rect", "size": [80.0, 24.0] },
+		"behavior": { "type": "solid" }
+	},
+	"spike": {
+		"shape": { "type": "triangle", "size": [30.0, 32.0] },
+		"behavior": {
+			"type": "trigger",
+			"activation": "touch",
+			"effect": { "type": "kill_player" }
+		}
+	},
+	"jump_orb": {
+		"shape": { "type": "circle", "radius": 24.0 },
+		"behavior": {
+			"type": "trigger",
+			"activation": "jump_pressed",
+			"effect": { "type": "set_min_vertical_speed_px", "speed_px": 180.0 }
+		}
+	},
+	"gravity_portal": {
+		"shape": { "type": "rect", "size": [32.0, 32.0] },
+		"behavior": {
+			"type": "trigger",
+			"activation": "touch",
+			"effect": { "type": "flip_gravity" }
+		}
+	}
+}

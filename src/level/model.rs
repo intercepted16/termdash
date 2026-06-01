@@ -1,8 +1,9 @@
-use crate::world::components::{Solid, WorldEntity};
-use bevy::color::Color;
+use crate::gameplay::triggers::{TriggerActivation, TriggerEffect};
+use crate::level::components::{Solid, WorldEntity};
 use bevy::prelude::*;
 use serde::de::Error;
 use serde::{Deserialize, Deserializer};
+use std::collections::HashMap;
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Level {
@@ -13,7 +14,7 @@ pub struct Level {
     pub player: PlayerDef,
     pub ground: Ground,
     #[serde(default)]
-    pub objects: Vec<WorldObject>,
+    pub objects: Vec<LevelObject>,
     pub music_path: Option<String>, // relative to assets/
     #[serde(default)]
     pub audio_visualizer: Option<AudioVisualizer>,
@@ -69,48 +70,41 @@ impl GroundSegment {
     }
 }
 
-#[derive(Clone, Debug, Deserialize)]
-#[serde(tag = "kind", rename_all = "snake_case")]
-pub enum WorldObject {
-    Solid(SolidDef),
-    Spike(Spike),
-    JumpOrb(JumpOrbDef),
-    JumpPad(JumpPadDef),
-    GravityPortal(GravityPortalDef),
-}
+#[derive(Resource)]
+pub struct Prefabs(pub HashMap<String, ResolvedObject>);
 
 #[derive(Clone, Debug, Deserialize)]
-pub struct SolidDef {
+pub struct LevelObject {
+    // necessary in any object
     pub position: Vec2,
-    pub size: Vec2,
     pub color: Color,
+    #[serde(default)]
+    pub prefab: Option<String>,
+    // optional as they may be provided by a prefab
+    pub shape: Option<ObjectShape>,
+    pub behavior: Option<ObjectBehavior>,
 }
 
-#[derive(Clone, Debug, Deserialize)]
-pub struct GravityPortalDef {
-    pub position: Vec2,
-    pub color: Color, // no multiplier since it's based on color
+#[derive(Deserialize, Clone, Copy, Debug)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum ObjectShape {
+    Circle { radius: f32 },
+    Rect { size: Vec2 },
+    Triangle { size: Vec2 },
 }
 
-#[derive(Clone, Debug, Deserialize)]
-pub struct Spike {
-    pub position: Vec2,
-    pub size: Vec2,
-    pub color: Color,
+#[derive(Clone, Copy, Debug, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum ObjectBehavior {
+    Solid,
+    Trigger {
+        activation: TriggerActivation,
+        effect: TriggerEffect,
+    },
 }
 
-#[derive(Clone, Debug, Deserialize, Component)]
-pub struct JumpOrbDef {
-    pub position: Vec2,
-    pub radius: f32,
-    pub color: Color,
-    pub strength_px: f32,
-}
-
-#[derive(Clone, Debug, Deserialize)]
-pub struct JumpPadDef {
-    pub position: Vec2,
-    pub size: Vec2,
-    pub color: Color,
-    pub strength_px: f32,
+#[derive(Clone, Copy, Debug, Deserialize)]
+pub struct ResolvedObject {
+    pub shape: ObjectShape,
+    pub behavior: ObjectBehavior,
 }

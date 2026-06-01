@@ -1,10 +1,10 @@
 use crate::AppState;
 use crate::config::Config;
+use crate::level::loading::{CurrentWorld, despawn_music, spawn_music};
+use crate::level::model::Level;
+use crate::level::queries::MusicEntities;
 use crate::player::components::{Player, Velocity};
 use crate::player::queries::PlayerQuery;
-use crate::world::loading::{CurrentWorld, despawn_music, spawn_music};
-use crate::world::model::Level;
-use crate::world::queries::MusicEntities;
 use bevy::prelude::*;
 
 #[derive(Resource)]

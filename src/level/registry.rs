@@ -1,4 +1,4 @@
-use crate::world::model::Level;
+use crate::level::model::Level;
 
 use bevy::prelude::Resource;
 use std::fs;

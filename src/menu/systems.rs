@@ -1,10 +1,10 @@
 use crate::AppState;
 use crate::input::{InputState, just_pressed};
+use crate::level::components::WorldMusic;
+use crate::level::loading::LoadWorldEvent;
+use crate::level::registry::Levels;
 use crate::menu::resources::MenuState;
 use crate::menu::ui::render;
-use crate::world::components::WorldMusic;
-use crate::world::loading::LoadWorldEvent;
-use crate::world::registry::Levels;
 use bevy::prelude::*;
 use ratatui::crossterm::event::KeyCode as TerminalKeyCode;
 

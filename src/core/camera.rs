@@ -1,7 +1,7 @@
 use crate::AppState;
 use crate::config::Config;
+use crate::level::loading::CurrentWorld;
 use crate::player::components::Player;
-use crate::world::loading::CurrentWorld;
 use bevy::prelude::*;
 use bevy_ratatui_camera::RatatuiCamera;
 pub struct CameraPlugin;

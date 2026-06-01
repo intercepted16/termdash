@@ -4,10 +4,10 @@ use crate::core::collision::{
     GROUND_EPSILON, bounds_at, bounds_from_sprite, overlaps_x, overlaps_y,
 };
 use crate::input::{InputState, just_pressed};
+use crate::level::components::Solid;
+use crate::level::loading::CurrentWorld;
 use crate::player::components::Player;
 use crate::player::queries::PlayerQuery;
-use crate::world::components::Solid;
-use crate::world::loading::CurrentWorld;
 
 use bevy::math::bounding::BoundingVolume;
 

@@ -17,8 +17,8 @@
 /// playback time would appear the same.
 use crate::config::Config;
 use crate::core::camera::projection_scale_or;
-use crate::world::components::{AudioVisualizerBar, WorldEntity, WorldMusic};
-use crate::world::model::Level;
+use crate::level::components::{AudioVisualizerBar, WorldEntity, WorldMusic};
+use crate::level::model::Level;
 use bevy::audio::AudioSinkPlayback;
 use bevy::prelude::*;
 

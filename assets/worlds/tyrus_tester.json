@@ -1,423 +1,331 @@
 {
-  "id": "tyrus_tester",
-  "name": "Tyrus Tester",
-  "description": "silly tyrus tester",
-  "music_path": "music/field_of_memories.ogg",
-  "audio_visualizer": {
-    "bar_count": 32
-  },
-  "size": [
-    3600.0,
-    560.0
-  ],
-  "scroll_speed_px": 72.0,
-  "player": {
-    "spawn": [
-      80.0,
-      -208.0
-    ],
-    "size": [
-      32.0,
-      32.0
-    ],
-    "color": {
-      "LinearRgba": {
-        "red": 1.0,
-        "green": 1.0,
-        "blue": 1.0,
-        "alpha": 1.0
-      }
-    }
-  },
-  "ground": {
-    "y": -232.0,
-    "height": 16.0,
-    "color": {
-      "LinearRgba": {
-        "red": 0.12,
-        "green": 0.36,
-        "blue": 0.72,
-        "alpha": 1.0
-      }
-    },
-    "segments": [
-      {
-        "start_x": -160.0,
-        "width": 760.0
-      },
-      {
-        "start_x": 690.0,
-        "width": 430.0
-      },
-      {
-        "start_x": 1210.0,
-        "width": 660.0
-      },
-      {
-        "start_x": 1970.0,
-        "width": 510.0
-      },
-      {
-        "start_x": 2570.0,
-        "width": 1030.0
-      }
-    ]
-  },
-  "objects": [
-    {
-      "kind": "solid",
-      "position": [
-        250.0,
-        -184.0
-      ],
-      "size": [
-        80.0,
-        24.0
-      ],
-      "color": {
-        "LinearRgba": {
-          "red": 0.22,
-          "green": 0.64,
-          "blue": 0.96,
-          "alpha": 1.0
-        }
-      }
-    },
-    {
-      "kind": "spike",
-      "position": [
-        430.0,
-        -208.0
-      ],
-      "size": [
-        28.0,
-        32.0
-      ],
-      "color": {
-        "LinearRgba": {
-          "red": 0.95,
-          "green": 0.18,
-          "blue": 0.16,
-          "alpha": 1.0
-        }
-      }
-    },
-    {
-      "kind": "solid",
-      "position": [
-        760.0,
-        -184.0
-      ],
-      "size": [
-        108.0,
-        24.0
-      ],
-      "color": {
-        "LinearRgba": {
-          "red": 0.2,
-          "green": 0.72,
-          "blue": 0.66,
-          "alpha": 1.0
-        }
-      }
-    },
-    {
-      "kind": "jump_orb",
-      "position": [
-        845.0,
-        -136.0
-      ],
-      "radius": 24.0,
-      "color": {
-        "LinearRgba": {
-          "red": 1.0,
-          "green": 0.84,
-          "blue": 0.16,
-          "alpha": 1.0
-        }
-      },
-      "strength_px": 180.0
-    },
-    {
-      "kind": "solid",
-      "position": [
-        910.0,
-        -152.0
-      ],
-      "size": [
-        112.0,
-        24.0
-      ],
-      "color": {
-        "LinearRgba": {
-          "red": 0.2,
-          "green": 0.72,
-          "blue": 0.66,
-          "alpha": 1.0
-        }
-      }
-    },
-    {
-      "kind": "gravity_portal",
-      "position": [
-        1040.0,
-        -218.0
-      ],
-      "color": {
-        "LinearRgba": {
-          "red": 0.12,
-          "green": 0.86,
-          "blue": 1.0,
-          "alpha": 1.0
-        }
-      }
-    },
-    {
-      "kind": "spike",
-      "position": [
-        1350.0,
-        -208.0
-      ],
-      "size": [
-        30.0,
-        32.0
-      ],
-      "color": {
-        "LinearRgba": {
-          "red": 0.98,
-          "green": 0.2,
-          "blue": 0.22,
-          "alpha": 1.0
-        }
-      }
-    },
-    {
-      "kind": "solid",
-      "position": [
-        1455.0,
-        -184.0
-      ],
-      "size": [
-        96.0,
-        24.0
-      ],
-      "color": {
-        "LinearRgba": {
-          "red": 0.72,
-          "green": 0.58,
-          "blue": 0.18,
-          "alpha": 1.0
-        }
-      }
-    },
-    {
-      "kind": "spike",
-      "position": [
-        1530.0,
-        -208.0
-      ],
-      "size": [
-        26.0,
-        32.0
-      ],
-      "color": {
-        "LinearRgba": {
-          "red": 0.96,
-          "green": 0.22,
-          "blue": 0.18,
-          "alpha": 1.0
-        }
-      }
-    },
-    {
-      "kind": "solid",
-      "position": [
-        1770.0,
-        -168.0
-      ],
-      "size": [
-        120.0,
-        24.0
-      ],
-      "color": {
-        "LinearRgba": {
-          "red": 0.55,
-          "green": 0.76,
-          "blue": 0.28,
-          "alpha": 1.0
-        }
-      }
-    },
-    {
-      "kind": "solid",
-      "position": [
-        2050.0,
-        -184.0
-      ],
-      "size": [
-        104.0,
-        24.0
-      ],
-      "color": {
-        "LinearRgba": {
-          "red": 0.28,
-          "green": 0.62,
-          "blue": 0.95,
-          "alpha": 1.0
-        }
-      }
-    },
-    {
-      "kind": "spike",
-      "position": [
-        2165.0,
-        -208.0
-      ],
-      "size": [
-        30.0,
-        32.0
-      ],
-      "color": {
-        "LinearRgba": {
-          "red": 0.94,
-          "green": 0.18,
-          "blue": 0.28,
-          "alpha": 1.0
-        }
-      }
-    },
-    {
-      "kind": "solid",
-      "position": [
-        2315.0,
-        -152.0
-      ],
-      "size": [
-        116.0,
-        24.0
-      ],
-      "color": {
-        "LinearRgba": {
-          "red": 0.28,
-          "green": 0.62,
-          "blue": 0.95,
-          "alpha": 1.0
-        }
-      }
-    },
-    {
-      "kind": "solid",
-      "position": [
-        2825.0,
-        -184.0
-      ],
-      "size": [
-        86.0,
-        24.0
-      ],
-      "color": {
-        "LinearRgba": {
-          "red": 0.82,
-          "green": 0.42,
-          "blue": 0.16,
-          "alpha": 1.0
-        }
-      }
-    },
-    {
-      "kind": "solid",
-      "position": [
-        2965.0,
-        -152.0
-      ],
-      "size": [
-        92.0,
-        24.0
-      ],
-      "color": {
-        "LinearRgba": {
-          "red": 0.82,
-          "green": 0.42,
-          "blue": 0.16,
-          "alpha": 1.0
-        }
-      }
-    },
-    {
-      "kind": "solid",
-      "position": [
-        3110.0,
-        -184.0
-      ],
-      "size": [
-        86.0,
-        24.0
-      ],
-      "color": {
-        "LinearRgba": {
-          "red": 0.82,
-          "green": 0.42,
-          "blue": 0.16,
-          "alpha": 1.0
-        }
-      }
-    },
-    {
-      "kind": "spike",
-      "position": [
-        3235.0,
-        -208.0
-      ],
-      "size": [
-        30.0,
-        32.0
-      ],
-      "color": {
-        "LinearRgba": {
-          "red": 0.95,
-          "green": 0.16,
-          "blue": 0.2,
-          "alpha": 1.0
-        }
-      }
-    },
-    {
-      "kind": "spike",
-      "position": [
-        3300.0,
-        -208.0
-      ],
-      "size": [
-        30.0,
-        32.0
-      ],
-      "color": {
-        "LinearRgba": {
-          "red": 0.95,
-          "green": 0.16,
-          "blue": 0.2,
-          "alpha": 1.0
-        }
-      }
-    },
-    {
-      "kind": "solid",
-      "position": [
-        3440.0,
-        -184.0
-      ],
-      "size": [
-        160.0,
-        24.0
-      ],
-      "color": {
-        "LinearRgba": {
-          "red": 0.36,
-          "green": 0.82,
-          "blue": 0.34,
-          "alpha": 1.0
-        }
-      }
-    }
-  ]
+	"id": "tyrus_tester",
+	"name": "Tyrus Tester",
+	"description": "silly tyrus tester",
+	"music_path": "music/field_of_memories.ogg",
+	"audio_visualizer": {
+		"bar_count": 32
+	},
+	"size": [3600.0, 560.0],
+	"scroll_speed_px": 72.0,
+	"player": {
+		"spawn": [80.0, -208.0],
+		"size": [32.0, 32.0],
+		"color": {
+			"LinearRgba": {
+				"red": 1.0,
+				"green": 1.0,
+				"blue": 1.0,
+				"alpha": 1.0
+			}
+		}
+	},
+	"ground": {
+		"y": -232.0,
+		"height": 16.0,
+		"color": {
+			"LinearRgba": {
+				"red": 0.12,
+				"green": 0.36,
+				"blue": 0.72,
+				"alpha": 1.0
+			}
+		},
+		"segments": [
+			{
+				"start_x": -160.0,
+				"width": 760.0
+			},
+			{
+				"start_x": 690.0,
+				"width": 430.0
+			},
+			{
+				"start_x": 1210.0,
+				"width": 660.0
+			},
+			{
+				"start_x": 1970.0,
+				"width": 510.0
+			},
+			{
+				"start_x": 2570.0,
+				"width": 1030.0
+			}
+		]
+	},
+	"objects": [
+		{
+			"prefab": "solid",
+			"position": [250.0, -184.0],
+			"color": {
+				"LinearRgba": {
+					"red": 0.22,
+					"green": 0.64,
+					"blue": 0.96,
+					"alpha": 1.0
+				}
+			}
+		},
+		{
+			"prefab": "spike",
+			"position": [430.0, -208.0],
+			"color": {
+				"LinearRgba": {
+					"red": 0.95,
+					"green": 0.18,
+					"blue": 0.16,
+					"alpha": 1.0
+				}
+			}
+		},
+		{
+			"prefab": "solid",
+			"position": [760.0, -184.0],
+			"color": {
+				"LinearRgba": {
+					"red": 0.2,
+					"green": 0.72,
+					"blue": 0.66,
+					"alpha": 1.0
+				}
+			},
+			"shape": {
+				"type": "rect",
+				"size": [108.0, 24.0]
+			}
+		},
+		{
+			"prefab": "jump_orb",
+			"position": [845.0, -136.0],
+			"color": {
+				"LinearRgba": {
+					"red": 1.0,
+					"green": 0.84,
+					"blue": 0.16,
+					"alpha": 1.0
+				}
+			}
+		},
+		{
+			"prefab": "solid",
+			"position": [910.0, -152.0],
+			"color": {
+				"LinearRgba": {
+					"red": 0.2,
+					"green": 0.72,
+					"blue": 0.66,
+					"alpha": 1.0
+				}
+			},
+			"shape": {
+				"type": "rect",
+				"size": [112.0, 24.0]
+			}
+		},
+		{
+			"prefab": "gravity_portal",
+			"position": [1040.0, -218.0],
+			"color": {
+				"LinearRgba": {
+					"red": 0.12,
+					"green": 0.86,
+					"blue": 1.0,
+					"alpha": 1.0
+				}
+			}
+		},
+		{
+			"prefab": "spike",
+			"position": [1350.0, -208.0],
+			"color": {
+				"LinearRgba": {
+					"red": 0.98,
+					"green": 0.2,
+					"blue": 0.22,
+					"alpha": 1.0
+				}
+			}
+		},
+		{
+			"prefab": "solid",
+			"position": [1455.0, -184.0],
+			"shape": {
+				"type": "rect",
+				"size": [96.0, 24.0]
+			},
+			"color": {
+				"LinearRgba": {
+					"red": 0.72,
+					"green": 0.58,
+					"blue": 0.18,
+					"alpha": 1.0
+				}
+			}
+		},
+		{
+			"prefab": "spike",
+			"position": [1530.0, -208.0],
+			"shape": {
+				"type": "triangle",
+				"size": [26.0, 32.0]
+			},
+			"color": {
+				"LinearRgba": {
+					"red": 0.96,
+					"green": 0.22,
+					"blue": 0.18,
+					"alpha": 1.0
+				}
+			}
+		},
+		{
+			"prefab": "solid",
+			"position": [1770.0, -168.0],
+			"shape": {
+				"type": "rect",
+				"size": [120.0, 24.0]
+			},
+			"color": {
+				"LinearRgba": {
+					"red": 0.55,
+					"green": 0.76,
+					"blue": 0.28,
+					"alpha": 1.0
+				}
+			}
+		},
+		{
+			"prefab": "solid",
+			"position": [2050.0, -184.0],
+			"color": {
+				"LinearRgba": {
+					"red": 0.28,
+					"green": 0.62,
+					"blue": 0.95,
+					"alpha": 1.0
+				}
+			},
+			"shape": {
+				"type": "rect",
+				"size": [104.0, 24.0]
+			}
+		},
+		{
+			"prefab": "spike",
+			"position": [2165.0, -208.0],
+			"color": {
+				"LinearRgba": {
+					"red": 0.94,
+					"green": 0.18,
+					"blue": 0.28,
+					"alpha": 1.0
+				}
+			}
+		},
+		{
+			"prefab": "solid",
+			"position": [2315.0, -152.0],
+			"color": {
+				"LinearRgba": {
+					"red": 0.28,
+					"green": 0.62,
+					"blue": 0.95,
+					"alpha": 1.0
+				}
+			},
+			"shape": {
+				"type": "rect",
+				"size": [116.0, 24.0]
+			}
+		},
+		{
+			"prefab": "solid",
+			"position": [2825.0, -184.0],
+			"color": {
+				"LinearRgba": {
+					"red": 0.82,
+					"green": 0.42,
+					"blue": 0.16,
+					"alpha": 1.0
+				}
+			},
+			"shape": {
+				"type": "rect",
+				"size": [86.0, 24.0]
+			}
+		},
+		{
+			"prefab": "solid",
+			"position": [2965.0, -152.0],
+			"color": {
+				"LinearRgba": {
+					"red": 0.82,
+					"green": 0.42,
+					"blue": 0.16,
+					"alpha": 1.0
+				}
+			},
+			"shape": {
+				"type": "rect",
+				"size": [92.0, 24.0]
+			}
+		},
+		{
+			"prefab": "solid",
+			"position": [3110.0, -184.0],
+			"color": {
+				"LinearRgba": {
+					"red": 0.82,
+					"green": 0.42,
+					"blue": 0.16,
+					"alpha": 1.0
+				}
+			},
+			"shape": {
+				"type": "rect",
+				"size": [86.0, 24.0]
+			}
+		},
+		{
+			"prefab": "spike",
+			"position": [3235.0, -208.0],
+			"color": {
+				"LinearRgba": {
+					"red": 0.95,
+					"green": 0.16,
+					"blue": 0.2,
+					"alpha": 1.0
+				}
+			}
+		},
+		{
+			"prefab": "spike",
+			"position": [3300.0, -208.0],
+			"color": {
+				"LinearRgba": {
+					"red": 0.95,
+					"green": 0.16,
+					"blue": 0.2,
+					"alpha": 1.0
+				}
+			}
+		},
+		{
+			"prefab": "solid",
+			"position": [3440.0, -184.0],
+			"shape": {
+				"type": "rect",
+				"size": [160.0, 24.0]
+			},
+			"color": {
+				"LinearRgba": {
+					"red": 0.36,
+					"green": 0.82,
+					"blue": 0.34,
+					"alpha": 1.0
+				}
+			}
+		}
+	]
 }

@@ -1,4 +1,4 @@
-use crate::world::model::PlayerDef;
+use crate::level::model::PlayerDef;
 use bevy::prelude::*;
 
 #[derive(Component)]

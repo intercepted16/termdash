@@ -1,5 +1,5 @@
 pub mod death;
-mod triggers;
+pub mod triggers;
 
 use crate::AppState;
 use crate::config::Config;
@@ -7,9 +7,9 @@ use crate::gameplay::death::{
     DeathPause, KillPlayerEvent, begin_death_pause, emit_out_of_world_deaths, tick_death_pause,
 };
 use crate::gameplay::triggers::{TriggerState, apply_player_triggers};
+use crate::level::components::WorldEntity;
+use crate::level::loading::CurrentWorld;
 use crate::player::move_player;
-use crate::world::components::WorldEntity;
-use crate::world::loading::CurrentWorld;
 use bevy::prelude::*;
 
 pub struct GameplayPlugin;
@@ -45,5 +45,5 @@ fn cleanup_gameplay(
         commands.entity(entity).despawn();
     }
     current_world.definition = None;
-    trigger_state.clear();
+    trigger_state.0.clear();
 }

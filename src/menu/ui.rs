@@ -9,7 +9,7 @@ use ratatui::{
 };
 
 use crate::{
-    AppState, gameplay::death::DeathPause, menu::resources::MenuState, world::registry::Levels,
+    AppState, gameplay::death::DeathPause, level::registry::Levels, menu::resources::MenuState,
 };
 
 // Base, highlight and border styles
