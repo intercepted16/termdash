@@ -16,7 +16,11 @@ use bevy::prelude::*;
 use bevy::winit::WinitPlugin;
 use bevy_ratatui::RatatuiPlugins;
 use bevy_ratatui_camera::RatatuiCameraPlugin;
+
 use std::time::Duration;
+
+use tracing_appender::non_blocking;
+use tracing_subscriber::{EnvFilter, fmt};
 
 use crate::config::Config;
 use crate::core::camera::CameraPlugin;
@@ -26,9 +30,31 @@ use crate::level::LevelPlugin;
 use crate::menu::MenuPlugin;
 use crate::player::PlayerPlugin;
 use crate::state::AppState;
+use std::sync::OnceLock;
+use tracing_appender::non_blocking::WorkerGuard;
+
+static LOG_GUARD: OnceLock<WorkerGuard> = OnceLock::new();
+
+fn setup_logging(path: String) {
+    let (writer, guard) = non_blocking(
+        std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(path)
+            .unwrap(),
+    );
+
+    LOG_GUARD.set(guard).unwrap();
+
+    fmt()
+        .with_writer(writer)
+        .with_env_filter(EnvFilter::from_default_env().add_directive("info".parse().unwrap()))
+        .init();
+}
 
 fn main() {
     let config = Config::load();
+    setup_logging(config.game.logfile.clone());
 
     App::new()
         .add_plugins((

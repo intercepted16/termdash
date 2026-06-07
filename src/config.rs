@@ -11,14 +11,14 @@ pub struct Config {
 
 impl Config {
     pub fn load() -> Self {
-        toml::from_str(include_str!("../assets/config.toml"))
-            .expect("failed to parse assets/config.toml")
+        toml::from_str(include_str!("../assets/config.toml")).expect("failed to parse config")
     }
 }
 
 #[derive(Debug, Deserialize)]
 pub struct GameConfig {
     pub fps: f64,
+    pub logfile: String, // relative to working dir
 }
 
 #[derive(Debug, Deserialize)]
