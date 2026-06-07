@@ -1,231 +1,204 @@
 use crate::config::Config;
-use crate::core::camera::world_units_per_pixel;
-use crate::core::collision::{
-    GROUND_EPSILON, bounds_at, bounds_from_sprite, overlaps_x, overlaps_y,
-};
-use crate::input::{InputState, just_pressed};
+use crate::input::InputState;
 use crate::level::components::Solid;
-use crate::level::loading::CurrentWorld;
-use crate::player::components::Player;
+use crate::level::load::CurrentLevel;
 use crate::player::queries::PlayerQuery;
 
-use bevy::math::bounding::BoundingVolume;
-
-use bevy::math::bounding::Aabb2d;
+use avian2d::prelude::{Collider, ShapeCastConfig, SpatialQuery, SpatialQueryFilter};
 use bevy::prelude::*;
-use bevy_ratatui_camera::RatatuiCamera;
 
 use ratatui::crossterm::event::KeyCode;
 use std::f32::consts::PI;
 
-type SolidSprites<'w, 's> =
-    Query<'w, 's, (&'static Transform, &'static Sprite), (With<Solid>, Without<Player>)>;
+type MovementQueries<'w, 's> = (Query<'w, 's, (), With<Solid>>, PlayerQuery<'w, 's>);
 
 const AIR_SPIN_RADIANS_PER_SECOND: f32 = 8.0;
-const VIEWPORT_FLOOR_THICKNESS: f32 = 16.0;
+const CONTACT_EPSILON: f32 = 0.05;
+const GROUND_PROBE_DISTANCE: f32 = 2.0;
+const GROUNDED_GRACE_SECONDS: f32 = 0.1;
+const BLOCKING_NORMAL_DOT: f32 = 0.5;
 
-fn viewport_floor(
-    camera_transform: &Transform,
-    projection: &Projection,
-    ratatui_camera: &RatatuiCamera,
-) -> Aabb2d {
-    let scale = world_units_per_pixel(projection);
-    let viewport_size = ratatui_camera.dimensions.as_vec2() * scale;
-
-    let top = camera_transform.translation.y + viewport_size.y * 0.5;
-
-    Aabb2d::new(
-        Vec2::new(
-            camera_transform.translation.x,
-            top - VIEWPORT_FLOOR_THICKNESS * 0.5,
-        ),
-        Vec2::new(viewport_size.x, VIEWPORT_FLOOR_THICKNESS * 0.5),
-    )
+fn rotation_z(transform: &Transform) -> f32 {
+    transform.rotation.to_euler(EulerRot::XYZ).2
 }
 
-fn grounded(player: Aabb2d, solids: &[Aabb2d], gravity_dir: f32) -> bool {
-    solids.iter().any(|solid| {
-        overlaps_x(player, *solid)
-            && ((gravity_dir > 0.0 && (player.min.y - solid.max.y).abs() <= GROUND_EPSILON)
-                || (gravity_dir < 0.0 && (player.max.y - solid.min.y).abs() <= GROUND_EPSILON))
-    })
+fn solid_filter(player_entity: Entity) -> SpatialQueryFilter {
+    SpatialQueryFilter::from_excluded_entities([player_entity])
 }
 
-/// Determines if the player just collided horizontally, taking into account gravity direction.
-fn resolve_horizontal(
-    position: &mut Vec3,
-    velocity: &mut Vec2,
-    bounds: Aabb2d,
-    solids: &[Aabb2d],
-    dt: f32,
-) {
-    if velocity.x <= 0.0 {
-        return;
-    }
-
-    let next_x = position.x + velocity.x * dt;
-
-    for solid in solids {
-        let moved = bounds_at(bounds, Vec2::new(next_x, position.y));
-
-        let hit = bounds.max.x <= solid.min.x + GROUND_EPSILON
-            && moved.max.x >= solid.min.x
-            && overlaps_y(moved, *solid);
-
-        if hit {
-            position.x = solid.min.x - bounds.half_size().x;
-            velocity.x = 0.0;
-            return;
-        }
-    }
-
-    position.x = next_x;
-}
-
-/// Determines if the player just landed, taking into account gravity direction.
-fn resolve_vertical(
-    position: &mut Vec3,
-    velocity: &mut Vec2,
-    bounds: Aabb2d,
-    solids: &[Aabb2d],
-    gravity_dir: f32,
-    dt: f32,
+/// is the player hitting something right now?
+fn hit(
+    spatial_query: &SpatialQuery,
+    solids: &Query<(), With<Solid>>,
+    player_entity: Entity,
+    collider: &Collider,
+    transform: &mut Transform,
+    delta: Vec2,
+    ignore_origin_penetration: bool,
 ) -> bool {
-    let next_y = position.y + velocity.y * dt;
+    let Some(direction) = Dir2::new(delta).ok() else {
+        return false;
+    };
 
-    for solid in solids {
-        let moved = bounds_at(bounds, Vec2::new(position.x, next_y));
+    let config = ShapeCastConfig {
+        ignore_origin_penetration,
+        ..ShapeCastConfig::from_max_distance(delta.length())
+    };
+    let filter = solid_filter(player_entity);
+    let opposing_normal = -direction.as_vec2();
 
-        let floor_hit = if gravity_dir > 0.0 {
-            velocity.y <= 0.0
-                && overlaps_x(moved, *solid)
-                && bounds.min.y >= solid.max.y - GROUND_EPSILON
-                && moved.min.y <= solid.max.y
-        } else {
-            velocity.y >= 0.0
-                && overlaps_x(moved, *solid)
-                && bounds.max.y <= solid.min.y + GROUND_EPSILON
-                && moved.max.y >= solid.min.y
-        };
+    let hit = spatial_query
+        .shape_hits(
+            collider,
+            transform.translation.xy(),
+            rotation_z(transform),
+            direction,
+            8,
+            &config,
+            &filter,
+        )
+        .into_iter()
+        .find(|hit| {
+            solids.contains(hit.entity) && hit.normal1.dot(opposing_normal) >= BLOCKING_NORMAL_DOT
+        });
 
-        if floor_hit {
-            position.y = if gravity_dir > 0.0 {
-                solid.max.y + bounds.half_size().y
-            } else {
-                solid.min.y - bounds.half_size().y
-            };
+    let travel = hit
+        .map(|hit| (hit.distance - CONTACT_EPSILON).max(0.0))
+        .unwrap_or(delta.length());
 
-            velocity.y = 0.0;
+    transform.translation.x += direction.x * travel;
+    transform.translation.y += direction.y * travel;
 
-            return true;
-        }
-
-        let ceiling_hit = if gravity_dir > 0.0 {
-            velocity.y > 0.0
-                && overlaps_x(moved, *solid)
-                && bounds.max.y <= solid.min.y + GROUND_EPSILON
-                && moved.max.y >= solid.min.y
-        } else {
-            velocity.y < 0.0
-                && overlaps_x(moved, *solid)
-                && bounds.min.y >= solid.max.y - GROUND_EPSILON
-                && moved.min.y <= solid.max.y
-        };
-
-        if ceiling_hit {
-            position.y = if gravity_dir > 0.0 {
-                solid.min.y - bounds.half_size().y
-            } else {
-                solid.max.y + bounds.half_size().y
-            };
-
-            velocity.y = 0.0;
-
-            return false;
-        }
-    }
-
-    position.y = next_y;
-
-    false
+    hit.is_some()
 }
 
-fn grounded_rotation(gravity_dir: f32) -> Quat {
-    Quat::from_rotation_z(if gravity_dir > 0.0 { 0.0 } else { PI })
+fn grounded(
+    spatial_query: &SpatialQuery,
+    solids: &Query<(), With<Solid>>,
+    player_entity: Entity,
+    collider: &Collider,
+    position: Vec2,
+    rotation: f32,
+    gravity_dir: Dir2,
+) -> bool {
+    let config = ShapeCastConfig::from_max_distance(GROUND_PROBE_DISTANCE);
+    let filter = solid_filter(player_entity);
+    let supporting_normal = -gravity_dir.as_vec2();
+
+    spatial_query
+        .shape_hits(
+            collider,
+            position,
+            rotation,
+            gravity_dir,
+            8,
+            &config,
+            &filter,
+        )
+        .into_iter()
+        .any(|hit| {
+            solids.contains(hit.entity) && hit.normal1.dot(supporting_normal) >= BLOCKING_NORMAL_DOT
+        })
 }
 
 pub fn move_player(
-    config: Res<Config>,
-    time: Res<Time>,
-    input_state: Res<InputState>,
-    current_world: Res<CurrentWorld>,
-    camera: Single<
-        (&Transform, &Projection, &RatatuiCamera),
-        (With<RatatuiCamera>, Without<Player>),
-    >,
-    queries: (SolidSprites, PlayerQuery),
+    resources: (Res<Config>, Res<Time>, Res<InputState>, Res<CurrentLevel>),
+    mut spatial_query: SpatialQuery,
+    queries: MovementQueries,
 ) {
-    // Scale to frame time
+    let (config, time, input_state, current_level) = resources;
+    let (solids, player) = queries;
     let dt = time.delta_secs();
 
-    let (camera_transform, projection, ratatui_camera) = camera.into_inner();
+    spatial_query.update_pipeline();
 
-    let scale = world_units_per_pixel(projection);
-
-    let forward_speed = current_world
-        .definition
+    let forward_speed = current_level
+        .0
         .as_ref()
         .map(|world| world.scroll_speed_px)
-        .unwrap_or(config.player.forward_speed_px)
-        * scale;
+        .unwrap()
+        * config.camera.zoom;
 
-    let gravity = config.player.gravity_px * scale;
-    let jump_speed = config.player.jump_speed_px * scale;
+    let gravity = config.player.gravity_px * config.camera.zoom;
+    let jump_speed = config.player.jump_speed_px * config.camera.zoom;
 
-    let (solid_sprites, player) = queries;
+    let wants_jump = input_state.just_pressed(KeyCode::Up);
 
-    let mut solids = solid_sprites
-        .iter()
-        .map(|(transform, sprite)| bounds_from_sprite(transform, sprite))
-        .collect::<Vec<_>>();
-
-    solids.push(viewport_floor(camera_transform, projection, ratatui_camera));
-
-    let wants_jump = just_pressed(&input_state, KeyCode::Up);
-
-    let (mut transform, sprite, mut velocity, player) = player.into_inner();
+    let (player_entity, mut transform, collider, mut velocity, mut player) = player.into_inner();
 
     let gravity_dir = player.gravity_dir;
+    let gravity_velocity = gravity_dir.as_vec2() * gravity;
 
-    let mut position = transform.translation;
+    velocity.x = forward_speed;
+    velocity.0 += gravity_velocity * dt;
 
-    velocity.0.x = forward_speed;
-    velocity.0.y -= gravity * gravity_dir * dt;
-
-    let bounds = bounds_from_sprite(&Transform::from_translation(position), sprite);
-
-    let is_grounded = grounded(bounds, &solids, gravity_dir);
-
-    if is_grounded && wants_jump {
-        velocity.0.y = jump_speed * gravity_dir;
-    }
-
-    resolve_horizontal(&mut position, &mut velocity.0, bounds, &solids, dt);
-
-    let landed = resolve_vertical(
-        &mut position,
-        &mut velocity.0,
-        bounds,
+    let is_grounded = grounded(
+        &spatial_query,
         &solids,
+        player_entity,
+        collider,
+        transform.translation.xy(),
+        rotation_z(&transform),
         gravity_dir,
-        dt,
     );
 
-    transform.translation = position;
-
-    if landed || grounded(bounds_at(bounds, position.xy()), &solids, gravity_dir) {
-        transform.rotation = grounded_rotation(gravity_dir);
+    if is_grounded {
+        player.grounded_grace = GROUNDED_GRACE_SECONDS;
     } else {
-        transform.rotate_z(AIR_SPIN_RADIANS_PER_SECOND * gravity_dir * dt);
+        player.grounded_grace = (player.grounded_grace - dt).max(0.0);
+    }
+
+    if wants_jump && player.grounded_grace > 0.0 {
+        velocity.0 = -gravity_dir.as_vec2() * jump_speed;
+        velocity.x = forward_speed;
+        player.grounded_grace = 0.0;
+    }
+
+    if hit(
+        &spatial_query,
+        &solids,
+        player_entity,
+        collider,
+        &mut transform,
+        Vec2::X * velocity.x * dt,
+        true,
+    ) {
+        velocity.x = 0.0;
+    }
+
+    let vertical_delta = Vec2::Y * velocity.y * dt;
+    let speed_with_gravity = velocity.0.dot(gravity_dir.as_vec2());
+    let moving_with_gravity = speed_with_gravity >= 0.0;
+    let moving_away_from_ground = speed_with_gravity < 0.0;
+    let vertical_hit = hit(
+        &spatial_query,
+        &solids,
+        player_entity,
+        collider,
+        &mut transform,
+        vertical_delta,
+        moving_away_from_ground,
+    );
+
+    if vertical_hit {
+        velocity.y = 0.0;
+    }
+
+    let landed = vertical_hit && moving_with_gravity;
+
+    if landed
+        || grounded(
+            &spatial_query,
+            &solids,
+            player_entity,
+            collider,
+            transform.translation.xy(),
+            rotation_z(&transform),
+            gravity_dir,
+        )
+    {
+        transform.rotation = Quat::from_rotation_z(if gravity_dir.y < 0.0 { 0.0 } else { PI })
+    } else {
+        transform.rotate_z(AIR_SPIN_RADIANS_PER_SECOND * -gravity_dir.y * dt);
     }
 }

@@ -29,7 +29,6 @@ pub struct CameraConfig {
 
 #[derive(Debug, Deserialize)]
 pub struct PlayerConfig {
-    pub forward_speed_px: f32,
     pub gravity_px: f32,
     pub jump_speed_px: f32,
     pub death_pause_seconds: f32,

@@ -27,7 +27,14 @@ impl DeathPause {
     }
 }
 
-fn reset_player(transform: &mut Transform, velocity: &mut Velocity, spawn: Vec2) {
+fn reset_player(
+    player: &mut Player,
+    transform: &mut Transform,
+    velocity: &mut Velocity,
+    spawn: Vec2,
+) {
+    player.gravity_dir = Dir2::NEG_Y;
+    player.grounded_grace = 0.0;
     transform.translation = spawn.extend(0.0);
     transform.rotation = Quat::IDENTITY;
     velocity.0 = Vec2::ZERO;
@@ -42,7 +49,9 @@ pub fn completion_percent(player_x: f32, world: &Level) -> u8 {
 
 pub fn fell_out_of_world(transform: &Transform, world: &Level) -> bool {
     let world_bottom = world.ground.y - world.size.y;
-    transform.translation.y < world_bottom
+    let world_top = world.ground.y + world.size.y;
+
+    transform.translation.y < world_bottom || transform.translation.y > world_top
 }
 
 pub fn emit_out_of_world_deaths(
@@ -72,7 +81,7 @@ fn start_death_pause(
     commands: &mut Commands,
     music: &MusicEntities,
 ) {
-    let (_, _, mut velocity, _) = player.into_inner();
+    let (_, _, _, mut velocity, _) = player.into_inner();
     velocity.0 = Vec2::ZERO;
     despawn_music(commands, music);
     *pause = DeathPause {
@@ -130,9 +139,9 @@ pub fn tick_death_pause(
         return;
     }
     let spawn = world.player.spawn;
-    let (mut transform, _, mut velocity, _) = player.into_inner();
+    let (_, mut transform, _, mut velocity, mut player) = player.into_inner();
 
-    reset_player(&mut transform, &mut velocity, spawn);
-    spawn_music(&mut commands, &asset_server, world, &config);
+    reset_player(&mut player, &mut transform, &mut velocity, spawn);
+    spawn_music(&mut commands, &config, &asset_server, world);
     next_state.set(AppState::Playing);
 }
