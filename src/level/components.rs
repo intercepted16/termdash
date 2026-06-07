@@ -5,4 +5,4 @@ macro_rules! components {
         $(#[derive(Component)] pub struct $component;)*
     };
 }
-components!(WorldEntity, Solid, WorldMusic, AudioVisualizerBar);
+components!(LevelEntity, Solid, LevelMusic, AudioVisualizerBar);

@@ -1,18 +1,21 @@
 use crate::level::model::Level;
+use crate::newtype;
 
 use bevy::prelude::Resource;
 use std::fs;
 use std::path::Path;
 
+newtype! {
 #[derive(Resource, Default)]
 pub struct Levels(pub Vec<Level>);
+}
 
 impl Levels {
     pub fn load() -> Result<Self, String> {
         let world_dir = Path::new("assets/worlds");
 
         if !world_dir.exists() {
-            return Err("world directory does not exist".to_string());
+            return Err("level directory does not exist".to_string());
         }
 
         let mut paths = fs::read_dir(world_dir)

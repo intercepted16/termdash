@@ -1,8 +1,9 @@
 use crate::gameplay::triggers::{TriggerActivation, TriggerEffect};
-use crate::level::components::{Solid, WorldEntity};
+use crate::level::components::{LevelEntity, Solid};
+use crate::newtype;
+use avian2d::prelude::{Collider, RigidBody};
 use bevy::prelude::*;
-use serde::de::Error;
-use serde::{Deserialize, Deserializer};
+use serde::Deserialize;
 use std::collections::HashMap;
 
 #[derive(Clone, Debug, Deserialize)]
@@ -15,7 +16,7 @@ pub struct Level {
     pub ground: Ground,
     #[serde(default)]
     pub objects: Vec<LevelObject>,
-    pub music_path: Option<String>, // relative to assets/
+    pub music_path: Option<String>,
     #[serde(default)]
     pub audio_visualizer: Option<AudioVisualizer>,
 }
@@ -27,23 +28,11 @@ pub struct PlayerDef {
     pub color: Color,
 }
 
-fn require_elements<'de, D, T>(deserializer: D) -> Result<Vec<T>, D::Error>
-where
-    D: Deserializer<'de>,
-    T: Deserialize<'de>,
-{
-    let vec = Vec::<T>::deserialize(deserializer)?;
-    if vec.is_empty() {
-        return Err(D::Error::custom("cannot be empty"));
-    }
-    Ok(vec)
-}
 #[derive(Clone, Debug, Deserialize)]
 pub struct Ground {
     pub y: f32,
     pub height: f32,
     pub color: Color,
-    #[serde(deserialize_with = "require_elements")]
     pub segments: Vec<GroundSegment>,
 }
 
@@ -62,36 +51,47 @@ pub struct GroundSegment {
 impl GroundSegment {
     pub fn make(&self, ground: &Ground) -> impl Bundle {
         (
-            WorldEntity,
+            LevelEntity,
             Solid,
+            RigidBody::Static,
+            Collider::rectangle(self.width, ground.height),
             Transform::from_translation(Vec3::new(self.start_x + self.width * 0.5, ground.y, 0.0)),
             Sprite::from_color(ground.color, Vec2::new(self.width, ground.height)),
         )
     }
 }
 
+newtype! {
 #[derive(Resource)]
 pub struct Prefabs(pub HashMap<String, ResolvedObject>);
+}
+
+fn default_scale() -> f32 {
+    1.0
+}
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct LevelObject {
-    // necessary in any object
     pub position: Vec2,
+    #[serde(default = "default_scale")]
+    pub scale: f32, // scale size relative to the defined prefab size
     pub color: Color,
     #[serde(default)]
     pub prefab: Option<String>,
-    // optional as they may be provided by a prefab
-    pub shape: Option<ObjectShape>,
+    pub visual: Option<Visual>,
+    pub collider: Option<ColliderDef>,
     pub behavior: Option<ObjectBehavior>,
 }
 
-#[derive(Deserialize, Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
-pub enum ObjectShape {
+pub enum ColliderDef {
     Circle { radius: f32 },
     Rect { size: Vec2 },
     Triangle { size: Vec2 },
 }
+
+pub type ObjectShape = ColliderDef;
 
 #[derive(Clone, Copy, Debug, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -103,8 +103,17 @@ pub enum ObjectBehavior {
     },
 }
 
-#[derive(Clone, Copy, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum Visual {
+    Shape { shape: ObjectShape },
+    Sprite { path: String },
+    Scene { path: String },
+}
+
+#[derive(Clone, Debug, Deserialize)]
 pub struct ResolvedObject {
-    pub shape: ObjectShape,
+    pub visual: Visual,
+    pub collider: Option<ColliderDef>,
     pub behavior: ObjectBehavior,
 }

@@ -17,7 +17,8 @@
 /// playback time would appear the same.
 use crate::config::Config;
 use crate::core::camera::projection_scale_or;
-use crate::level::components::{AudioVisualizerBar, WorldEntity, WorldMusic};
+use crate::level::components::{AudioVisualizerBar, LevelEntity, LevelMusic};
+use crate::level::model::AudioVisualizer;
 use crate::level::model::Level;
 use bevy::audio::AudioSinkPlayback;
 use bevy::prelude::*;
@@ -28,9 +29,6 @@ const MIN_BAR_HEIGHT: f32 = 4.0;
 const VISUALIZER_Z: f32 = -20.0;
 
 #[derive(Component)]
-pub struct AudioVisualizer;
-
-#[derive(Component)]
 pub struct AudioVisualizerBarState {
     index: usize,
     bar_count: usize,
@@ -38,45 +36,46 @@ pub struct AudioVisualizerBarState {
     max_height: f32,
     phase: f32,
 }
+type AudioVisualizerBarBundle = (
+    LevelEntity,
+    LevelMusic,
+    AudioVisualizerBar,
+    AudioVisualizerBarState,
+    Transform,
+    Sprite,
+);
 
-pub fn spawn_audio_visualizer(commands: &mut Commands, world: &Level, config: &Config) {
-    if !config.visualizer.enabled {
-        return;
-    }
+impl AudioVisualizer {
+    pub fn bundles(&self, level: &Level) -> Vec<AudioVisualizerBarBundle> {
+        let bar_count = self.bar_count.clamp(16, 160);
+        let base_y = level.ground.y + level.ground.height * 0.5;
+        let max_height = (level.size.y * 0.46).max(MIN_BAR_HEIGHT);
 
-    let Some(visualizer) = world.audio_visualizer.as_ref() else {
-        return;
-    };
-
-    let bar_count = visualizer.bar_count.clamp(16, 160);
-    let base_y = world.ground.y + world.ground.height * 0.5;
-    let max_height = (world.size.y * 0.46).max(MIN_BAR_HEIGHT);
-
-    for index in 0..bar_count {
-        let phase = index as f32 * 0.47;
-
-        commands.spawn((
-            WorldEntity,
-            WorldMusic,
-            AudioVisualizerBar,
-            AudioVisualizer,
-            AudioVisualizerBarState {
-                index,
-                bar_count,
-                base_y,
-                max_height,
-                phase,
-            },
-            Transform::from_translation(Vec3::new(
-                world.player.spawn.x,
-                base_y + MIN_BAR_HEIGHT * 0.5,
-                VISUALIZER_Z,
-            )),
-            Sprite::from_color(
-                visualizer_color(0.0, 0.0, index, bar_count),
-                Vec2::new(8.0, MIN_BAR_HEIGHT),
-            ),
-        ));
+        (0..bar_count)
+            .map(|index| {
+                (
+                    LevelEntity,
+                    LevelMusic,
+                    AudioVisualizerBar,
+                    AudioVisualizerBarState {
+                        index,
+                        bar_count,
+                        base_y,
+                        max_height,
+                        phase: index as f32 * 0.47,
+                    },
+                    Transform::from_translation(Vec3::new(
+                        level.player.spawn.x,
+                        base_y + MIN_BAR_HEIGHT * 0.5,
+                        VISUALIZER_Z,
+                    )),
+                    Sprite::from_color(
+                        color(0.0, 0.0, index, bar_count),
+                        Vec2::new(8.0, MIN_BAR_HEIGHT),
+                    ),
+                )
+            })
+            .collect()
     }
 }
 
@@ -93,15 +92,10 @@ type VisualizerCamera<'w, 's> = Single<
 
 pub fn update_audio_visualizer(
     config: Res<Config>,
-    music: Query<&AudioSink, With<WorldMusic>>,
+    music: Query<&AudioSink, With<LevelMusic>>,
     camera: VisualizerCamera,
     mut bars: Query<
-        (
-            &AudioVisualizer,
-            &AudioVisualizerBarState,
-            &mut Transform,
-            &mut Sprite,
-        ),
+        (&AudioVisualizerBarState, &mut Transform, &mut Sprite),
         Without<RatatuiCamera>,
     >,
 ) {
@@ -118,7 +112,7 @@ pub fn update_audio_visualizer(
     let viewport_width = ratatui_camera.dimensions.x as f32 * scale;
     let left_x = camera_transform.translation.x - viewport_width * 0.5;
 
-    for (_, bar, mut transform, mut sprite) in &mut bars {
+    for (bar, mut transform, mut sprite) in &mut bars {
         let spacing = viewport_width / bar.bar_count as f32;
         let width = (spacing * 0.64).max(3.0);
 
@@ -133,14 +127,14 @@ pub fn update_audio_visualizer(
             (MIN_BAR_HEIGHT + pulse * bar.max_height * 0.52).clamp(MIN_BAR_HEIGHT, bar.max_height);
 
         sprite.custom_size = Some(Vec2::new(width, height));
-        sprite.color = visualizer_color(pulse, seconds, bar.index, bar.bar_count);
+        sprite.color = color(pulse, seconds, bar.index, bar.bar_count);
 
         transform.translation.x = left_x + spacing * (bar.index as f32 + 0.5);
         transform.translation.y = bar.base_y + height * 0.5;
     }
 }
 
-fn visualizer_color(pulse: f32, seconds: f32, index: usize, bar_count: usize) -> Color {
+fn color(pulse: f32, seconds: f32, index: usize, bar_count: usize) -> Color {
     let gradient = index as f32 / bar_count.max(1) as f32;
 
     let hue = (220.0 + gradient * 42.0 + seconds * 7.0).rem_euclid(360.0);
