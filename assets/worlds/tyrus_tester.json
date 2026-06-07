@@ -149,6 +149,25 @@
 		},
 		{
 			"prefab": "solid",
+			"position": [1595.0, 96.0],
+			"visual": {
+				"type": "shape",
+				"shape": {
+					"type": "rect",
+					"size": [550.0, 16.0]
+				}
+			},
+			"color": {
+				"LinearRgba": {
+					"red": 0.12,
+					"green": 0.36,
+					"blue": 0.72,
+					"alpha": 1.0
+				}
+			}
+		},
+		{
+			"prefab": "solid",
 			"position": [1455.0, -184.0],
 			"shape": {
 				"type": "rect",
@@ -197,6 +216,25 @@
 		},
 		{
 			"prefab": "solid",
+			"position": [2225.0, 96.0],
+			"visual": {
+				"type": "shape",
+				"shape": {
+					"type": "rect",
+					"size": [510.0, 16.0]
+				}
+			},
+			"color": {
+				"LinearRgba": {
+					"red": 0.12,
+					"green": 0.36,
+					"blue": 0.72,
+					"alpha": 1.0
+				}
+			}
+		},
+		{
+			"prefab": "solid",
 			"position": [2050.0, -184.0],
 			"color": {
 				"LinearRgba": {
@@ -237,6 +275,25 @@
 			"shape": {
 				"type": "rect",
 				"size": [116.0, 24.0]
+			}
+		},
+		{
+			"prefab": "solid",
+			"position": [3085.0, 96.0],
+			"visual": {
+				"type": "shape",
+				"shape": {
+					"type": "rect",
+					"size": [1030.0, 16.0]
+				}
+			},
+			"color": {
+				"LinearRgba": {
+					"red": 0.12,
+					"green": 0.36,
+					"blue": 0.72,
+					"alpha": 1.0
+				}
 			}
 		},
 		{
