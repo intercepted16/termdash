@@ -1,6 +1,6 @@
 use crate::AppState;
 use crate::config::Config;
-use crate::level::loading::{CurrentWorld, despawn_music, spawn_music};
+use crate::level::load::{CurrentLevel, despawn_music, spawn_music};
 use crate::level::model::Level;
 use crate::level::queries::MusicEntities;
 use crate::player::components::{Player, Velocity};
@@ -14,7 +14,7 @@ pub struct DeathPause {
 }
 
 #[derive(Message)]
-pub struct KillPlayerEvent {
+pub struct KillPlayer {
     pub percent: u8,
 }
 
@@ -46,17 +46,17 @@ pub fn fell_out_of_world(transform: &Transform, world: &Level) -> bool {
 }
 
 pub fn emit_out_of_world_deaths(
-    current_world: Res<CurrentWorld>,
+    current_level: Res<CurrentLevel>,
     players: Query<&Transform, With<Player>>,
-    mut deaths: MessageWriter<KillPlayerEvent>,
+    mut deaths: MessageWriter<KillPlayer>,
 ) {
-    let Some(world) = current_world.definition.as_ref() else {
+    let Some(world) = current_level.0.as_ref() else {
         return;
     };
 
     for transform in &players {
         if fell_out_of_world(transform, world) {
-            deaths.write(KillPlayerEvent {
+            deaths.write(KillPlayer {
                 percent: completion_percent(transform.translation.x, world),
             });
         }
@@ -89,7 +89,7 @@ pub fn begin_death_pause(
     mut pause: ResMut<DeathPause>,
     player: PlayerQuery,
     music: MusicEntities,
-    mut deaths: MessageReader<KillPlayerEvent>,
+    mut deaths: MessageReader<KillPlayer>,
 ) {
     let Some(death) = deaths.read().next() else {
         return;
@@ -109,7 +109,7 @@ pub fn begin_death_pause(
 type DeathResources<'w> = (
     Res<'w, Config>,
     Res<'w, Time>,
-    Res<'w, CurrentWorld>,
+    Res<'w, CurrentLevel>,
     Res<'w, AssetServer>,
 );
 
@@ -120,9 +120,9 @@ pub fn tick_death_pause(
     mut pause: ResMut<DeathPause>,
     player: PlayerQuery,
 ) {
-    let (config, time, current_world, asset_server) = resources;
+    let (config, time, current_level, asset_server) = resources;
 
-    let Some(world) = current_world.definition.as_ref() else {
+    let Some(world) = current_level.0.as_ref() else {
         return;
     };
     pause.timer.tick(time.delta());

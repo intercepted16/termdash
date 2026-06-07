@@ -1,7 +1,7 @@
 use crate::AppState;
-use crate::input::{InputState, just_pressed};
-use crate::level::components::WorldMusic;
-use crate::level::loading::LoadWorldEvent;
+use crate::input::InputState;
+use crate::level::components::LevelMusic;
+use crate::level::load::LoadWorldEvent;
 use crate::level::registry::Levels;
 use crate::menu::resources::MenuState;
 use crate::menu::ui::render;
@@ -31,19 +31,19 @@ impl Plugin for MenuPlugin {
 fn main_menu_input(
     input: Res<InputState>,
     mut menu: ResMut<MenuState>,
-    world_registry: Res<Levels>,
+    level_registry: Res<Levels>,
     mut load_world_events: MessageWriter<LoadWorldEvent>,
     mut next_state: ResMut<NextState<AppState>>,
 ) {
-    if just_pressed(&input, TerminalKeyCode::Up) {
+    if input.just_pressed(TerminalKeyCode::Up) {
         menu.previous();
     }
 
-    if just_pressed(&input, TerminalKeyCode::Down) {
-        menu.next(world_registry.0.len());
+    if input.just_pressed(TerminalKeyCode::Down) {
+        menu.next(level_registry.len());
     }
 
-    if just_pressed(&input, TerminalKeyCode::Enter) {
+    if input.just_pressed(TerminalKeyCode::Enter) {
         load_world_events.write(LoadWorldEvent {
             index: menu.selected_world,
         });
@@ -53,22 +53,22 @@ fn main_menu_input(
 }
 
 fn pause_input(input: Res<InputState>, mut next_state: ResMut<NextState<AppState>>) {
-    if just_pressed(&input, TerminalKeyCode::Esc) {
+    if input.just_pressed(TerminalKeyCode::Esc) {
         next_state.set(AppState::Paused);
     }
 }
 
 fn paused_menu_input(input: Res<InputState>, mut next_state: ResMut<NextState<AppState>>) {
-    if just_pressed(&input, TerminalKeyCode::Esc) {
+    if input.just_pressed(TerminalKeyCode::Esc) {
         next_state.set(AppState::Playing);
     }
 
-    if just_pressed(&input, TerminalKeyCode::Enter) {
+    if input.just_pressed(TerminalKeyCode::Enter) {
         next_state.set(AppState::MainMenu);
     }
 }
 
-fn music_playing<const PAUSED: bool>(music: Query<&AudioSink, With<WorldMusic>>) {
+fn music_playing<const PAUSED: bool>(music: Query<&AudioSink, With<LevelMusic>>) {
     for sink in &music {
         if PAUSED {
             sink.pause();

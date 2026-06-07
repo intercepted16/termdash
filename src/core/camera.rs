@@ -1,10 +1,11 @@
 use crate::AppState;
 use crate::config::Config;
-use crate::level::loading::CurrentWorld;
+use crate::level::load::CurrentLevel;
 use crate::player::components::Player;
 use bevy::prelude::*;
 use bevy_ratatui_camera::RatatuiCamera;
 pub struct CameraPlugin;
+
 type CameraQuery<'w, 's> = Single<
     'w,
     's,
@@ -15,6 +16,7 @@ type CameraQuery<'w, 's> = Single<
     ),
     (With<RatatuiCamera>, Without<Player>),
 >;
+
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup_camera).add_systems(
@@ -32,16 +34,16 @@ pub fn projection_scale_or(projection: &Projection, fallback: f32) -> f32 {
 pub fn follow_player(
     config: Res<Config>,
     player: Single<&Transform, With<Player>>,
-    current_world: Res<CurrentWorld>,
+    current_level: Res<CurrentLevel>,
     camera: CameraQuery,
 ) {
     let (mut camera_transform, projection, ratatui_camera) = camera.into_inner();
     let scale = projection_scale_or(projection, config.camera.zoom);
     let world_height = ratatui_camera.dimensions.y as f32 * scale;
-    let ground_bottom = current_world
-        .definition
+    let ground_bottom = current_level
+        .0
         .as_ref()
-        .map(|world| world.ground.y - world.ground.height * 0.5)
+        .map(|level| level.ground.y - level.ground.height * 0.5)
         .unwrap();
     let bottom_margin = world_height * config.camera.bottom_margin_fraction;
     camera_transform.translation.x = player.translation.x;
@@ -58,6 +60,6 @@ fn setup_camera(mut commands: Commands, config: Res<Config>) {
     ));
 }
 
-pub fn world_units_per_pixel(projection: &Projection) -> f32 {
+pub fn level_units_per_pixel(projection: &Projection) -> f32 {
     projection_scale_or(projection, 1.0).max(f32::EPSILON)
 }
