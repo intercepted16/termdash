@@ -1,4 +1,3 @@
-// Input helpers
 use bevy::prelude::*;
 use bevy::prelude::{MessageReader, ResMut, Resource};
 use bevy_ratatui::event::KeyMessage;
@@ -9,6 +8,12 @@ use std::collections::HashSet;
 pub struct InputState {
     held: HashSet<TerminalKeyCode>,
     pressed: HashSet<TerminalKeyCode>,
+}
+
+impl InputState {
+    pub fn just_pressed(&self, key: TerminalKeyCode) -> bool {
+        self.pressed.contains(&key)
+    }
 }
 
 pub fn update_input_state(mut keys: MessageReader<KeyMessage>, mut input: ResMut<InputState>) {
@@ -26,10 +31,6 @@ pub fn update_input_state(mut keys: MessageReader<KeyMessage>, mut input: ResMut
             _ => {}
         }
     }
-}
-
-pub fn just_pressed(input: &InputState, key: TerminalKeyCode) -> bool {
-    input.pressed.contains(&key)
 }
 
 pub struct InputPlugin;
