@@ -72,7 +72,7 @@ pub fn emit_out_of_world_deaths(
     }
 }
 
-fn start_death_pause(
+fn start(
     percent: u8,
     config: &Config,
     next_state: &mut NextState<AppState>,
@@ -104,7 +104,7 @@ pub fn begin_death_pause(
         return;
     };
 
-    start_death_pause(
+    start(
         death.percent,
         &config,
         &mut next_state,

@@ -1,4 +1,4 @@
-// General purpose macros
+//! General purpose macros
 
 /// Implement `Deref` and `DerefMut` on a newtype,
 /// so that you can use `x.y` instead of `x.0.y`.

@@ -16,7 +16,7 @@ impl InputState {
     }
 }
 
-pub fn update_input_state(mut keys: MessageReader<KeyMessage>, mut input: ResMut<InputState>) {
+fn update(mut keys: MessageReader<KeyMessage>, mut input: ResMut<InputState>) {
     input.pressed.clear();
 
     for key in keys.read() {
@@ -38,6 +38,6 @@ pub struct InputPlugin;
 impl Plugin for InputPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<InputState>()
-            .add_systems(PreUpdate, update_input_state);
+            .add_systems(PreUpdate, update);
     }
 }

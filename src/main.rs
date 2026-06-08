@@ -3,9 +3,9 @@ mod core;
 mod gameplay;
 mod input;
 mod level;
-mod menu;
 mod player;
 mod state;
+mod ui;
 
 #[macro_use]
 mod macros;
@@ -27,7 +27,7 @@ use crate::core::camera::CameraPlugin;
 use crate::gameplay::GameplayPlugin;
 use crate::input::InputPlugin;
 use crate::level::LevelPlugin;
-use crate::menu::MenuPlugin;
+use crate::ui::MenuPlugin;
 use crate::player::PlayerPlugin;
 use crate::state::AppState;
 use std::sync::OnceLock;

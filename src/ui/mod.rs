@@ -1,3 +1,7 @@
+pub mod model;
+mod systems;
+pub use systems::MenuPlugin;
+
 use bevy::prelude::*;
 use bevy_ratatui::RatatuiContext;
 use bevy_ratatui_camera::RatatuiCameraWidget;
@@ -8,11 +12,8 @@ use ratatui::{
     widgets::*,
 };
 
-use crate::{
-    AppState, gameplay::death::DeathPause, level::registry::Levels, menu::resources::MenuState,
-};
+use crate::{AppState, gameplay::death::DeathPause, level::registry::Levels, ui::model::MenuState};
 
-// Base, highlight and border styles
 const BASE: Style = Style::new().fg(White);
 const HI: Style = Style::new().fg(Cyan).add_modifier(Modifier::BOLD);
 const BORDER: Style = Style::new().fg(Green);
@@ -53,7 +54,7 @@ pub fn render(
         match state.get() {
             AppState::MainMenu => {
                 let menu = menu.unwrap();
-                let worlds = worlds.unwrap();
+                let levels = worlds.unwrap();
 
                 let area = f.area();
                 let center_area = center(76, area.height.saturating_sub(2), area);
@@ -75,7 +76,7 @@ pub fn render(
                 );
                 f.render_stateful_widget(
                     List::new(
-                        worlds
+                        levels
                             .0
                             .iter()
                             .map(|w| ListItem::new(Line::styled(format!("  {}", w.name), BASE))),
@@ -86,18 +87,17 @@ pub fn render(
                     list,
                     &mut {
                         let mut s = ListState::default();
-                        s.select((!worlds.0.is_empty()).then_some(menu.selected_world));
+                        s.select((!levels.is_empty()).then_some(menu.0));
                         s
                     },
                 );
 
                 f.render_widget(
                     Paragraph::new(
-                        worlds
-                            .0
-                            .get(menu.selected_world)
+                        levels
+                            .get(menu.0)
                             .map(|w| w.description.as_str())
-                            .unwrap_or("No worlds available."),
+                            .unwrap_or("No levels available."),
                     )
                     .wrap(Wrap { trim: true })
                     .style(BASE)

@@ -3,8 +3,8 @@ use crate::input::InputState;
 use crate::level::components::LevelMusic;
 use crate::level::load::LoadWorldEvent;
 use crate::level::registry::Levels;
-use crate::menu::resources::MenuState;
-use crate::menu::ui::render;
+use crate::ui::model::MenuState;
+use crate::ui::render;
 use bevy::prelude::*;
 use ratatui::crossterm::event::KeyCode as TerminalKeyCode;
 
@@ -44,9 +44,7 @@ fn main_menu_input(
     }
 
     if input.just_pressed(TerminalKeyCode::Enter) {
-        load_world_events.write(LoadWorldEvent {
-            index: menu.selected_world,
-        });
+        load_world_events.write(LoadWorldEvent { index: menu.0 });
 
         next_state.set(AppState::Playing);
     }

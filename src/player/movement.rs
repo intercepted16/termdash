@@ -26,7 +26,6 @@ fn solid_filter(player_entity: Entity) -> SpatialQueryFilter {
     SpatialQueryFilter::from_excluded_entities([player_entity])
 }
 
-/// is the player hitting something right now?
 fn hit(
     spatial_query: &SpatialQuery,
     solids: &Query<(), With<Solid>>,
