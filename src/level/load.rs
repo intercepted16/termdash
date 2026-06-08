@@ -133,7 +133,7 @@ impl LevelObject {
         let collider = self
             .collider
             .or(prefab.collider)
-            .or_else(|| match &visual {
+            .or(match &visual {
                 Visual::Shape { shape } => Some(*shape),
                 _ => None,
             })

@@ -27,9 +27,9 @@ use crate::core::camera::CameraPlugin;
 use crate::gameplay::GameplayPlugin;
 use crate::input::InputPlugin;
 use crate::level::LevelPlugin;
-use crate::ui::MenuPlugin;
 use crate::player::PlayerPlugin;
 use crate::state::AppState;
+use crate::ui::MenuPlugin;
 use std::sync::OnceLock;
 use tracing_appender::non_blocking::WorkerGuard;
 
@@ -61,6 +61,7 @@ fn main() {
             ScheduleRunnerPlugin::run_loop(Duration::from_secs_f64(1.0 / config.game.fps)),
             DefaultPlugins
                 .build()
+                .set(ImagePlugin::default_linear())
                 .disable::<WinitPlugin>()
                 .disable::<bevy::log::LogPlugin>(),
             RatatuiPlugins::default(),

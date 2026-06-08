@@ -1,10 +1,11 @@
 pub mod model;
 mod systems;
+use crate::core::camera::render_camera;
 pub use systems::MenuPlugin;
 
 use bevy::prelude::*;
 use bevy_ratatui::RatatuiContext;
-use bevy_ratatui_camera::RatatuiCameraWidget;
+use bevy_ratatui_camera::{RatatuiCamera, RatatuiCameraWidget};
 use ratatui::{
     layout::{Alignment::Center, Constraint::Length, Direction::Vertical, Layout, Rect},
     style::{Color::*, Modifier, Style},
@@ -30,7 +31,7 @@ pub fn render(
     menu: Option<Res<MenuState>>,
     worlds: Option<Res<Levels>>,
     pause: Option<Res<DeathPause>>,
-    mut camera: Option<Single<&mut RatatuiCameraWidget>>,
+    mut camera: Query<(&mut RatatuiCameraWidget, &mut RatatuiCamera)>,
 ) {
     let _ = tui.draw(|f| {
         let block = |t| {
@@ -45,10 +46,6 @@ pub fn render(
             y: r.y + r.height.saturating_sub(h.min(r.height)) / 2,
             width: w.min(r.width),
             height: h.min(r.height),
-        };
-
-        let mut render_camera = || {
-            Widget::render(&mut ***(camera.as_mut().unwrap()), f.area(), f.buffer_mut());
         };
 
         match state.get() {
@@ -114,11 +111,11 @@ pub fn render(
             }
 
             AppState::Playing => {
-                render_camera();
+                render_camera(&mut camera, f.area(), f.buffer_mut());
             }
 
             AppState::Paused => {
-                render_camera();
+                render_camera(&mut camera, f.area(), f.buffer_mut());
 
                 let area = center(42, 9, f.area());
 
@@ -137,7 +134,7 @@ pub fn render(
             }
 
             AppState::Dead => {
-                render_camera();
+                render_camera(&mut camera, f.area(), f.buffer_mut());
 
                 const FONT: [&str; 11] = [
                     "███|█ █|█ █|█ █|███",

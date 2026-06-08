@@ -1,4 +1,4 @@
-use crate::core::camera::level_units_per_pixel;
+use crate::config::Config;
 use crate::gameplay::death::{KillPlayer, completion_percent};
 use crate::input::InputState;
 use crate::level::load::CurrentLevel;
@@ -6,7 +6,6 @@ use crate::player::components::Player;
 use crate::player::queries::PlayerQuery;
 use avian2d::prelude::{SpatialQuery, SpatialQueryFilter};
 use bevy::prelude::*;
-use bevy_ratatui_camera::RatatuiCamera;
 use ratatui::crossterm::event::KeyCode as TerminalKeyCode;
 use serde::Deserialize;
 use std::collections::HashSet;
@@ -42,16 +41,16 @@ pub fn apply_player_triggers(
     mut deaths: MessageWriter<KillPlayer>,
     input: Res<InputState>,
     mut state: ResMut<TriggerState>,
-    camera_projection: Single<&Projection, With<RatatuiCamera>>,
     mut spatial_query: SpatialQuery,
     (player, triggers): (PlayerQuery, PlayerTriggers),
+    config: Res<Config>,
 ) {
     let Some(world) = current_world.0.as_ref() else {
         return;
     };
 
     let jump_pressed = input.just_pressed(TerminalKeyCode::Up);
-    let world_units_per_pixel = level_units_per_pixel(camera_projection.into_inner());
+    let world_units_per_pixel = config.camera.zoom;
     let (player_entity, player_transform, player_collider, mut velocity, mut player) =
         player.into_inner();
     let filter = SpatialQueryFilter::from_excluded_entities([player_entity]);

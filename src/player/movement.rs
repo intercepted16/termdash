@@ -102,14 +102,12 @@ fn grounded(
 
 pub fn move_player(
     resources: (Res<Config>, Res<Time>, Res<InputState>, Res<CurrentLevel>),
-    mut spatial_query: SpatialQuery,
+    spatial_query: SpatialQuery,
     queries: MovementQueries,
 ) {
     let (config, time, input_state, current_level) = resources;
     let (solids, player) = queries;
     let dt = time.delta_secs();
-
-    spatial_query.update_pipeline();
 
     let forward_speed = current_level
         .0
