@@ -106,10 +106,7 @@ impl LevelObject {
 
         let mut entity = commands.spawn((
             LevelEntity,
-            resolved
-                .collider
-                .unwrap_or_else(|| resolved.visual.default_collider())
-                .into_collider(),
+            resolved.collider.into_collider(),
             Transform::from_translation(self.position.extend(0.0))
                 .with_scale(Vec3::splat(self.scale)),
         ));
@@ -121,38 +118,38 @@ impl LevelObject {
             .spawn(&mut entity, meshes, materials, self.color, asset_server);
     }
     fn resolve(&self, prefabs: &Prefabs) -> ResolvedObject {
-        let prefab = self.prefab.as_ref().map(|name| {
-            prefabs
-                .get(name)
-                .unwrap_or_else(|| panic!("Unknown prefab: {name}"))
-        });
+        let prefab = self
+            .prefab
+            .as_ref()
+            .map(|name| {
+                prefabs
+                    .get(name)
+                    .unwrap_or_else(|| panic!("Unknown prefab: {name}"))
+            })
+            .unwrap_or_else(|| panic!("couldn't get prefab"));
+
+        let visual = self.visual.clone().unwrap_or_else(|| prefab.visual.clone());
+
+        let collider = self
+            .collider
+            .or(prefab.collider)
+            .or_else(|| match &visual {
+                Visual::Shape { shape } => Some(*shape),
+                _ => None,
+            })
+            .expect("non-shape objects should have a collider");
+
+        let behavior = self.behavior.or(prefab.behavior).expect("missing behavior");
 
         ResolvedObject {
-            visual: self
-                .visual
-                .clone()
-                .or_else(|| prefab.map(|p| p.visual.clone()))
-                .expect("Missing visual"),
-            collider: self.collider.or_else(|| prefab.and_then(|p| p.collider)),
-            behavior: self
-                .behavior
-                .or_else(|| prefab.map(|p| p.behavior))
-                .expect("Missing behavior"),
+            visual,
+            collider,
+            behavior,
         }
     }
 }
 
 impl Visual {
-    pub fn default_collider(&self) -> ColliderDef {
-        match self {
-            Visual::Shape { shape } => *shape, // ObjectShape is an alias of
-            // ColliderDef
-            _ => {
-                panic!("non objects must specify a collider");
-            }
-        }
-    }
-
     pub fn spawn(
         self,
         entity: &mut EntityCommands,

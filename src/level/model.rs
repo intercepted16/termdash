@@ -63,7 +63,7 @@ impl GroundSegment {
 
 newtype! {
 #[derive(Resource)]
-pub struct Prefabs(pub HashMap<String, ResolvedObject>);
+pub struct Prefabs(pub HashMap<String, Prefab>);
 }
 
 fn default_scale() -> f32 {
@@ -79,6 +79,13 @@ pub struct LevelObject {
     #[serde(default)]
     pub prefab: Option<String>,
     pub visual: Option<Visual>,
+    pub collider: Option<ColliderDef>,
+    pub behavior: Option<ObjectBehavior>,
+}
+
+#[derive(Deserialize)]
+pub struct Prefab {
+    pub visual: Visual,
     pub collider: Option<ColliderDef>,
     pub behavior: Option<ObjectBehavior>,
 }
@@ -111,9 +118,9 @@ pub enum Visual {
     Scene { path: String },
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug)]
 pub struct ResolvedObject {
     pub visual: Visual,
-    pub collider: Option<ColliderDef>,
+    pub collider: ColliderDef,
     pub behavior: ObjectBehavior,
 }
