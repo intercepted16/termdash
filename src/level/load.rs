@@ -155,13 +155,18 @@ impl Visual {
         entity: &mut EntityCommands,
         meshes: &mut Assets<Mesh>,
         materials: &mut Assets<ColorMaterial>,
-        color: Color,
+        color: Option<Color>,
         asset_server: &AssetServer,
     ) {
         match self {
-            Visual::Shape { shape } => shape.insert(entity, meshes, materials, color),
+            Visual::Shape { shape } => {
+                shape.insert(entity, meshes, materials, color.unwrap_or(Color::WHITE))
+            }
             Visual::Sprite { path } => {
-                let sprite = Sprite::from_image(asset_server.load(path));
+                let mut sprite = Sprite::from_image(asset_server.load(path));
+                if let Some(color) = color {
+                    sprite.color = color
+                };
                 entity.insert(sprite);
             }
 

@@ -1,65 +1,45 @@
 {
-  "id": "silly_sausage",
-  "name": "Silly sausage",
-  "description": "your first world!",
-  "size": [
-    2400.0,
-    520.0
-  ],
-  "scroll_speed_px": 60.0,
-  "player": {
-    "spawn": [
-      0.0,
-      -208.0
-    ],
-    "size": [
-      32.0,
-      32.0
-    ],
-    "color": {
-      "LinearRgba": {
-        "red": 1.0,
-        "green": 1.0,
-        "blue": 1.0,
-        "alpha": 1.0
-      }
-    }
-  },
-  "ground": {
-    "y": -232.0,
-    "height": 16.0,
-    "color": {
-      "LinearRgba": {
-        "red": 0.2,
-        "green": 0.8,
-        "blue": 0.2,
-        "alpha": 1.0
-      }
-    },
-    "segments": [
-      {
-        "start_x": 0.0,
-        "end_x": 2400.0,
-        "width": 2400.0
-      }
-    ]
-  },
-  "objects": [
-    {
-      "prefab": "sawblade",
-      "position": [
-        400.0,
-        -200.0
-      ],
-      "scale": 0.5,
-      "color": {
-        "LinearRgba": {
-          "red": 1.0,
-          "green": 0.0,
-          "blue": 0.0,
-          "alpha": 1.0
-        }
-      }
-    }
-  ]
+	"id": "silly_sausage",
+	"name": "Silly sausage",
+	"description": "your first world!",
+	"size": [2400.0, 520.0],
+	"scroll_speed_px": 60.0,
+	"player": {
+		"spawn": [0.0, -208.0],
+		"size": [32.0, 32.0],
+		"color": {
+			"LinearRgba": {
+				"red": 1.0,
+				"green": 1.0,
+				"blue": 1.0,
+				"alpha": 1.0
+			}
+		}
+	},
+	"ground": {
+		"y": -232.0,
+		"height": 16.0,
+		"color": {
+			"LinearRgba": {
+				"red": 0.2,
+				"green": 0.8,
+				"blue": 0.2,
+				"alpha": 1.0
+			}
+		},
+		"segments": [
+			{
+				"start_x": 0.0,
+				"end_x": 2400.0,
+				"width": 2400.0
+			}
+		]
+	},
+	"objects": [
+		{
+			"prefab": "sawblade",
+			"position": [400.0, -200.0],
+			"scale": 0.5
+		}
+	]
 }

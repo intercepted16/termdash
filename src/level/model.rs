@@ -75,7 +75,7 @@ pub struct LevelObject {
     pub position: Vec2,
     #[serde(default = "default_scale")]
     pub scale: f32, // scale size relative to the defined prefab size
-    pub color: Color,
+    pub color: Option<Color>,
     #[serde(default)]
     pub prefab: Option<String>,
     pub visual: Option<Visual>,
