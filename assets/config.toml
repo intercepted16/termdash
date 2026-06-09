@@ -11,8 +11,5 @@ gravity_px = 300.0
 jump_speed_px = 120.0
 death_pause_seconds = 3.0
 
-[menu]
-key_cooldown_seconds = 0.2
-
 [visualizer]
 enabled = true
