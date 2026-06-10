@@ -1,6 +1,7 @@
 use crate::gameplay::triggers::{TriggerActivation, TriggerEffect};
 use crate::level::components::{LevelEntity, Solid};
 use crate::newtype;
+use avian2d::collision::collider::ColliderConstructor;
 use avian2d::prelude::{Collider, RigidBody};
 use bevy::prelude::*;
 use serde::Deserialize;
@@ -90,15 +91,12 @@ pub struct Prefab {
     pub behavior: Option<ObjectBehavior>,
 }
 
-#[derive(Clone, Copy, Debug, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum ColliderDef {
-    Circle { radius: f32 },
-    Rect { size: Vec2 },
-    Triangle { size: Vec2 },
-}
+pub type ColliderDef = ColliderConstructor;
 
-pub type ObjectShape = ColliderDef;
+newtype! {
+#[derive(Deserialize, Clone, Debug)]
+pub struct ObjectShape(pub ColliderDef);
+}
 
 #[derive(Clone, Copy, Debug, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -121,6 +119,6 @@ pub enum Visual {
 #[derive(Clone, Debug)]
 pub struct ResolvedObject {
     pub visual: Visual,
-    pub collider: ColliderDef,
+    pub collider: ColliderConstructor,
     pub behavior: ObjectBehavior,
 }

@@ -8,7 +8,7 @@ use crate::level::queries::MusicEntities;
 use crate::level::registry::Levels;
 use crate::newtype;
 use crate::player::components::Player;
-use avian2d::prelude::{Collider, RigidBody, Sensor};
+use avian2d::prelude::{RigidBody, Sensor};
 use bevy::prelude::*;
 use bevy::scene::SceneRoot;
 use std::fs;
@@ -30,20 +30,6 @@ impl Prefabs {
     }
 }
 
-impl ColliderDef {
-    fn into_collider(self) -> Collider {
-        match self {
-            ColliderDef::Rect { size } => Collider::rectangle(size.x, size.y),
-            ColliderDef::Circle { radius } => Collider::circle(radius),
-            ColliderDef::Triangle { size } => Collider::triangle(
-                Vec2::new(0.0, size.y * 0.5),
-                Vec2::new(size.x * -0.5, size.y * -0.5),
-                Vec2::new(size.x * 0.5, size.y * -0.5),
-            ),
-        }
-    }
-}
-
 impl ObjectShape {
     fn insert(
         self,
@@ -52,26 +38,26 @@ impl ObjectShape {
         materials: &mut Assets<ColorMaterial>,
         color: Color,
     ) {
-        match self {
-            ObjectShape::Rect { size } => {
+        match self.0 {
+            ColliderDef::Rectangle { x_length, y_length } => {
+                let size = Vec2::new(x_length, y_length);
                 entity.insert(Sprite::from_color(color, size));
             }
-            ObjectShape::Circle { radius } => {
+            ColliderDef::Circle { radius } => {
                 entity.insert((
                     Mesh2d(meshes.add(Circle::new(radius))),
                     MeshMaterial2d(materials.add(color)),
                 ));
             }
-            ObjectShape::Triangle { size } => {
-                let mesh = Triangle2d::new(
-                    Vec2::new(0.0, size.y * 0.5),
-                    Vec2::new(size.x * -0.5, size.y * -0.5),
-                    Vec2::new(size.x * 0.5, size.y * -0.5),
-                );
+            ColliderDef::Triangle { a, b, c } => {
+                let mesh = Triangle2d::new(a, b, c);
                 entity.insert((
                     Mesh2d(meshes.add(mesh)),
                     MeshMaterial2d(materials.add(color)),
                 ));
+            }
+            l => {
+                panic!("{l:?} shape is not supported")
             }
         }
     }
@@ -106,7 +92,7 @@ impl LevelObject {
 
         let mut entity = commands.spawn((
             LevelEntity,
-            resolved.collider.into_collider(),
+            resolved.collider,
             Transform::from_translation(self.position.extend(0.0))
                 .with_scale(Vec3::splat(self.scale)),
         ));
@@ -132,9 +118,10 @@ impl LevelObject {
 
         let collider = self
             .collider
-            .or(prefab.collider)
+            .as_ref()
+            .or(prefab.collider.as_ref())
             .or(match &visual {
-                Visual::Shape { shape } => Some(*shape),
+                Visual::Shape { shape } => Some(shape),
                 _ => None,
             })
             .expect("non-shape objects should have a collider");
@@ -142,9 +129,9 @@ impl LevelObject {
         let behavior = self.behavior.or(prefab.behavior).expect("missing behavior");
 
         ResolvedObject {
-            visual,
-            collider,
+            visual: visual.clone(),
             behavior,
+            collider: collider.clone(),
         }
     }
 }

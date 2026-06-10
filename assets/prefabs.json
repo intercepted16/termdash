@@ -3,11 +3,10 @@
 		"visual": {
 			"type": "shape",
 			"shape": {
-				"type": "rect",
-				"size": [
-					80.0,
-					24.0
-				]
+				"Rectangle": {
+					"x_length": 80.0,
+					"y_length": 24.0
+				}
 			}
 		},
 		"behavior": {
@@ -18,11 +17,11 @@
 		"visual": {
 			"type": "shape",
 			"shape": {
-				"type": "triangle",
-				"size": [
-					30.0,
-					32.0
-				]
+				"Triangle": {
+					"a": [-15.0, -16.0],
+					"b": [15.0, -16.0],
+					"c": [0.0, 16.0]
+				}
 			}
 		},
 		"behavior": {
@@ -37,8 +36,9 @@
 		"visual": {
 			"type": "shape",
 			"shape": {
-				"type": "circle",
-				"radius": 24.0
+				"Circle": {
+					"radius": 24.0
+				}
 			}
 		},
 		"behavior": {
@@ -54,11 +54,10 @@
 		"visual": {
 			"type": "shape",
 			"shape": {
-				"type": "rect",
-				"size": [
-					32.0,
-					32.0
-				]
+				"Rectangle": {
+					"x_length": 32.0,
+					"y_length": 32.0
+				}
 			}
 		},
 		"behavior": {
@@ -82,8 +81,9 @@
 			}
 		},
 		"collider": {
-			"type": "circle",
-			"radius": 50.0
+			"Circle": {
+				"radius": 50.0
+			}
 		}
 	}
 }

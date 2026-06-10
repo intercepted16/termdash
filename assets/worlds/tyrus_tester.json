@@ -90,9 +90,14 @@
 					"alpha": 1.0
 				}
 			},
-			"shape": {
-				"type": "rect",
-				"size": [108.0, 24.0]
+			"visual": {
+				"type": "shape",
+				"shape": {
+					"Rectangle": {
+						"x_length": 108.0,
+						"y_length": 24.0
+					}
+				}
 			}
 		},
 		{
@@ -118,9 +123,14 @@
 					"alpha": 1.0
 				}
 			},
-			"shape": {
-				"type": "rect",
-				"size": [112.0, 24.0]
+			"visual": {
+				"type": "shape",
+				"shape": {
+					"Rectangle": {
+						"x_length": 112.0,
+						"y_length": 24.0
+					}
+				}
 			}
 		},
 		{
@@ -153,8 +163,10 @@
 			"visual": {
 				"type": "shape",
 				"shape": {
-					"type": "rect",
-					"size": [550.0, 16.0]
+					"Rectangle": {
+						"x_length": 550.0,
+						"y_length": 16.0
+					}
 				}
 			},
 			"color": {
@@ -169,10 +181,6 @@
 		{
 			"prefab": "solid",
 			"position": [1455.0, -184.0],
-			"shape": {
-				"type": "rect",
-				"size": [96.0, 24.0]
-			},
 			"color": {
 				"LinearRgba": {
 					"red": 0.72,
@@ -180,15 +188,20 @@
 					"blue": 0.18,
 					"alpha": 1.0
 				}
+			},
+			"visual": {
+				"type": "shape",
+				"shape": {
+					"Rectangle": {
+						"x_length": 96.0,
+						"y_length": 24.0
+					}
+				}
 			}
 		},
 		{
 			"prefab": "spike",
 			"position": [1530.0, -208.0],
-			"shape": {
-				"type": "triangle",
-				"size": [26.0, 32.0]
-			},
 			"color": {
 				"LinearRgba": {
 					"red": 0.96,
@@ -196,21 +209,36 @@
 					"blue": 0.18,
 					"alpha": 1.0
 				}
+			},
+			"visual": {
+				"type": "shape",
+				"shape": {
+					"Triangle": {
+						"a": [-13.0, -16.0],
+						"b": [13.0, -16.0],
+						"c": [0.0, 16.0]
+					}
+				}
 			}
 		},
 		{
 			"prefab": "solid",
 			"position": [1770.0, -168.0],
-			"shape": {
-				"type": "rect",
-				"size": [120.0, 24.0]
-			},
 			"color": {
 				"LinearRgba": {
 					"red": 0.55,
 					"green": 0.76,
 					"blue": 0.28,
 					"alpha": 1.0
+				}
+			},
+			"visual": {
+				"type": "shape",
+				"shape": {
+					"Rectangle": {
+						"x_length": 120.0,
+						"y_length": 24.0
+					}
 				}
 			}
 		},
@@ -220,8 +248,10 @@
 			"visual": {
 				"type": "shape",
 				"shape": {
-					"type": "rect",
-					"size": [510.0, 16.0]
+					"Rectangle": {
+						"x_length": 510.0,
+						"y_length": 16.0
+					}
 				}
 			},
 			"color": {
@@ -244,9 +274,14 @@
 					"alpha": 1.0
 				}
 			},
-			"shape": {
-				"type": "rect",
-				"size": [104.0, 24.0]
+			"visual": {
+				"type": "shape",
+				"shape": {
+					"Rectangle": {
+						"x_length": 104.0,
+						"y_length": 24.0
+					}
+				}
 			}
 		},
 		{
@@ -272,9 +307,14 @@
 					"alpha": 1.0
 				}
 			},
-			"shape": {
-				"type": "rect",
-				"size": [116.0, 24.0]
+			"visual": {
+				"type": "shape",
+				"shape": {
+					"Rectangle": {
+						"x_length": 116.0,
+						"y_length": 24.0
+					}
+				}
 			}
 		},
 		{
@@ -283,8 +323,10 @@
 			"visual": {
 				"type": "shape",
 				"shape": {
-					"type": "rect",
-					"size": [1030.0, 16.0]
+					"Rectangle": {
+						"x_length": 1030.0,
+						"y_length": 16.0
+					}
 				}
 			},
 			"color": {
@@ -307,9 +349,14 @@
 					"alpha": 1.0
 				}
 			},
-			"shape": {
-				"type": "rect",
-				"size": [86.0, 24.0]
+			"visual": {
+				"type": "shape",
+				"shape": {
+					"Rectangle": {
+						"x_length": 86.0,
+						"y_length": 24.0
+					}
+				}
 			}
 		},
 		{
@@ -323,9 +370,14 @@
 					"alpha": 1.0
 				}
 			},
-			"shape": {
-				"type": "rect",
-				"size": [92.0, 24.0]
+			"visual": {
+				"type": "shape",
+				"shape": {
+					"Rectangle": {
+						"x_length": 92.0,
+						"y_length": 24.0
+					}
+				}
 			}
 		},
 		{
@@ -339,9 +391,14 @@
 					"alpha": 1.0
 				}
 			},
-			"shape": {
-				"type": "rect",
-				"size": [86.0, 24.0]
+			"visual": {
+				"type": "shape",
+				"shape": {
+					"Rectangle": {
+						"x_length": 86.0,
+						"y_length": 24.0
+					}
+				}
 			}
 		},
 		{
@@ -371,16 +428,21 @@
 		{
 			"prefab": "solid",
 			"position": [3440.0, -184.0],
-			"shape": {
-				"type": "rect",
-				"size": [160.0, 24.0]
-			},
 			"color": {
 				"LinearRgba": {
 					"red": 0.36,
 					"green": 0.82,
 					"blue": 0.34,
 					"alpha": 1.0
+				}
+			},
+			"visual": {
+				"type": "shape",
+				"shape": {
+					"Rectangle": {
+						"x_length": 160.0,
+						"y_length": 24.0
+					}
 				}
 			}
 		}
