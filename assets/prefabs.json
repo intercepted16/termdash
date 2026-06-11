@@ -18,9 +18,18 @@
 			"type": "shape",
 			"shape": {
 				"Triangle": {
-					"a": [-15.0, -16.0],
-					"b": [15.0, -16.0],
-					"c": [0.0, 16.0]
+					"a": [
+						-15.0,
+						-16.0
+					],
+					"b": [
+						15.0,
+						-16.0
+					],
+					"c": [
+						0.0,
+						16.0
+					]
 				}
 			}
 		},
@@ -83,6 +92,34 @@
 		"collider": {
 			"Circle": {
 				"radius": 50.0
+			}
+		}
+	},
+	"reverse_spike": {
+		"visual": {
+			"type": "shape",
+			"shape": {
+				"Triangle": {
+					"a": [
+						-15.0,
+						16.0
+					],
+					"b": [
+						15.0,
+						16.0
+					],
+					"c": [
+						0.0,
+						-16.0
+					]
+				}
+			}
+		},
+		"behavior": {
+			"type": "trigger",
+			"activation": "touch",
+			"effect": {
+				"type": "kill_player"
 			}
 		}
 	}
