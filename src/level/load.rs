@@ -2,13 +2,13 @@ use crate::config::Config;
 use crate::gameplay::triggers::PlayerTrigger;
 use crate::level::components::{LevelEntity, LevelMusic, Solid};
 use crate::level::model::{
-    ColliderDef, Level, LevelObject, ObjectBehavior, ObjectShape, Prefabs, ResolvedObject, Visual,
+    Level, LevelObject, ObjectBehavior, ObjectShape, Prefabs, ResolvedObject, Visual,
 };
 use crate::level::queries::MusicEntities;
 use crate::level::registry::Levels;
 use crate::newtype;
 use crate::player::components::Player;
-use avian2d::prelude::{RigidBody, Sensor};
+use avian2d::prelude::{ColliderConstructor, RigidBody, Sensor};
 use bevy::prelude::*;
 use bevy::scene::SceneRoot;
 use std::fs;
@@ -39,17 +39,17 @@ impl ObjectShape {
         color: Color,
     ) {
         match self.0 {
-            ColliderDef::Rectangle { x_length, y_length } => {
+            ColliderConstructor::Rectangle { x_length, y_length } => {
                 let size = Vec2::new(x_length, y_length);
                 entity.insert(Sprite::from_color(color, size));
             }
-            ColliderDef::Circle { radius } => {
+            ColliderConstructor::Circle { radius } => {
                 entity.insert((
                     Mesh2d(meshes.add(Circle::new(radius))),
                     MeshMaterial2d(materials.add(color)),
                 ));
             }
-            ColliderDef::Triangle { a, b, c } => {
+            ColliderConstructor::Triangle { a, b, c } => {
                 let mesh = Triangle2d::new(a, b, c);
                 entity.insert((
                     Mesh2d(meshes.add(mesh)),

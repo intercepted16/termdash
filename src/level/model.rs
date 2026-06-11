@@ -80,22 +80,20 @@ pub struct LevelObject {
     #[serde(default)]
     pub prefab: Option<String>,
     pub visual: Option<Visual>,
-    pub collider: Option<ColliderDef>,
+    pub collider: Option<ColliderConstructor>,
     pub behavior: Option<ObjectBehavior>,
 }
 
 #[derive(Deserialize)]
 pub struct Prefab {
     pub visual: Visual,
-    pub collider: Option<ColliderDef>,
+    pub collider: Option<ColliderConstructor>,
     pub behavior: Option<ObjectBehavior>,
 }
 
-pub type ColliderDef = ColliderConstructor;
-
 newtype! {
 #[derive(Deserialize, Clone, Debug)]
-pub struct ObjectShape(pub ColliderDef);
+pub struct ObjectShape(pub ColliderConstructor);
 }
 
 #[derive(Clone, Copy, Debug, Deserialize)]
