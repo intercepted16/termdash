@@ -14,9 +14,7 @@ pub struct DeathPause {
 }
 
 #[derive(Message)]
-pub struct KillPlayer {
-    pub percent: u8,
-}
+pub struct KillPlayer;
 
 impl DeathPause {
     pub fn new(seconds: f32) -> Self {
@@ -39,7 +37,7 @@ fn reset_player(
     transform.rotation = Quat::IDENTITY;
     velocity.0 = Vec2::ZERO;
 }
-pub fn completion_percent(player_x: f32, world: &Level) -> u8 {
+fn completion_percent(player_x: f32, world: &Level) -> u8 {
     let start_x = world.player.spawn.x;
     let distance = (world.size.x - start_x).max(f32::EPSILON);
     (((player_x - start_x) / distance) * 100.0)
@@ -47,52 +45,10 @@ pub fn completion_percent(player_x: f32, world: &Level) -> u8 {
         .round() as u8
 }
 
-pub fn fell_out_of_world(transform: &Transform, world: &Level) -> bool {
-    let world_bottom = world.ground.y - world.size.y;
-    let world_top = world.ground.y + world.size.y;
-
-    transform.translation.y < world_bottom || transform.translation.y > world_top
-}
-
-pub fn emit_out_of_world_deaths(
-    current_level: Res<CurrentLevel>,
-    players: Query<&Transform, With<Player>>,
-    mut deaths: MessageWriter<KillPlayer>,
-) {
-    let Some(world) = current_level.0.as_ref() else {
-        return;
-    };
-
-    for transform in &players {
-        if fell_out_of_world(transform, world) {
-            deaths.write(KillPlayer {
-                percent: completion_percent(transform.translation.x, world),
-            });
-        }
-    }
-}
-
-fn start(
-    percent: u8,
-    config: &Config,
-    next_state: &mut NextState<AppState>,
-    pause: &mut DeathPause,
-    player: PlayerQuery,
-    commands: &mut Commands,
-    music: &MusicEntities,
-) {
-    let (_, _, _, mut velocity, _) = player.into_inner();
-    velocity.0 = Vec2::ZERO;
-    despawn_music(commands, music);
-    *pause = DeathPause {
-        timer: Timer::from_seconds(config.player.death_pause_seconds, TimerMode::Once),
-        percent,
-    };
-    next_state.set(AppState::Dead);
-}
+type BeginDeathResources<'w> = (Res<'w, Config>, Res<'w, CurrentLevel>);
 
 pub fn begin_death_pause(
-    config: Res<Config>,
+    resources: BeginDeathResources,
     mut commands: Commands,
     mut next_state: ResMut<NextState<AppState>>,
     mut pause: ResMut<DeathPause>,
@@ -100,19 +56,23 @@ pub fn begin_death_pause(
     music: MusicEntities,
     mut deaths: MessageReader<KillPlayer>,
 ) {
-    let Some(death) = deaths.read().next() else {
+    if deaths.read().next().is_none() {
+        return;
+    }
+    let (config, current_level) = resources;
+    let Some(world) = current_level.0.as_ref() else {
         return;
     };
+    let (_, transform, _, mut velocity, _) = player.into_inner();
+    let percent = completion_percent(transform.translation.x, world);
 
-    start(
-        death.percent,
-        &config,
-        &mut next_state,
-        &mut pause,
-        player,
-        &mut commands,
-        &music,
-    );
+    velocity.0 = Vec2::ZERO;
+    despawn_music(&mut commands, &music);
+    *pause = DeathPause {
+        timer: Timer::from_seconds(config.player.death_pause_seconds, TimerMode::Once),
+        percent,
+    };
+    next_state.set(AppState::Dead);
 }
 
 type DeathResources<'w> = (

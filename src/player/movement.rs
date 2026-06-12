@@ -1,7 +1,8 @@
 use crate::config::Config;
+use crate::gameplay::death::KillPlayer;
 use crate::input::InputState;
-use crate::level::model::Solid;
 use crate::level::load::CurrentLevel;
+use crate::level::model::{KillPlayerOnSide, Level, Solid};
 use crate::player::queries::PlayerQuery;
 
 use avian2d::prelude::{Collider, ShapeCastConfig, SpatialQuery, SpatialQueryFilter};
@@ -10,7 +11,11 @@ use bevy::prelude::*;
 use ratatui::crossterm::event::KeyCode;
 use std::f32::consts::PI;
 
-type MovementQueries<'w, 's> = (Query<'w, 's, (), With<Solid>>, PlayerQuery<'w, 's>);
+type MovementQueries<'w, 's> = (
+    Query<'w, 's, (), With<Solid>>,
+    Query<'w, 's, (), With<KillPlayerOnSide>>,
+    PlayerQuery<'w, 's>,
+);
 
 const AIR_SPIN_RADIANS_PER_SECOND: f32 = 8.0;
 const CONTACT_EPSILON: f32 = 0.05;
@@ -34,10 +39,8 @@ fn hit(
     transform: &mut Transform,
     delta: Vec2,
     ignore_origin_penetration: bool,
-) -> bool {
-    let Some(direction) = Dir2::new(delta).ok() else {
-        return false;
-    };
+) -> Option<Entity> {
+    let direction = Dir2::new(delta).ok()?;
 
     let config = ShapeCastConfig {
         ignore_origin_penetration,
@@ -62,13 +65,14 @@ fn hit(
         });
 
     let travel = hit
+        .as_ref()
         .map(|hit| (hit.distance - CONTACT_EPSILON).max(0.0))
         .unwrap_or(delta.length());
 
     transform.translation.x += direction.x * travel;
     transform.translation.y += direction.y * travel;
 
-    hit.is_some()
+    hit.map(|hit| hit.entity)
 }
 
 fn grounded(
@@ -100,21 +104,25 @@ fn grounded(
         })
 }
 
+fn fell_out_of_world(transform: &Transform, world: &Level) -> bool {
+    let world_bottom = world.ground.y - world.size.y;
+    let world_top = world.ground.y + world.size.y;
+
+    transform.translation.y < world_bottom || transform.translation.y > world_top
+}
+
 pub fn move_player(
     resources: (Res<Config>, Res<Time>, Res<InputState>, Res<CurrentLevel>),
+    mut deaths: MessageWriter<KillPlayer>,
     spatial_query: SpatialQuery,
     queries: MovementQueries,
 ) {
     let (config, time, input_state, current_level) = resources;
-    let (solids, player) = queries;
+    let (solids, side_kill_solids, player) = queries;
     let dt = time.delta_secs();
+    let world = current_level.0.as_ref().unwrap();
 
-    let forward_speed = current_level
-        .0
-        .as_ref()
-        .map(|world| world.scroll_speed_px)
-        .unwrap()
-        * config.camera.zoom;
+    let forward_speed = world.scroll_speed_px * config.camera.zoom;
 
     let gravity = config.player.gravity_px * config.camera.zoom;
     let jump_speed = config.player.jump_speed_px * config.camera.zoom;
@@ -151,7 +159,7 @@ pub fn move_player(
         player.grounded_grace = 0.0;
     }
 
-    if hit(
+    if let Some(entity) = hit(
         &spatial_query,
         &solids,
         player_entity,
@@ -160,6 +168,10 @@ pub fn move_player(
         Vec2::X * velocity.x * dt,
         true,
     ) {
+        if side_kill_solids.contains(entity) {
+            deaths.write(KillPlayer);
+        }
+
         velocity.x = 0.0;
     }
 
@@ -177,11 +189,11 @@ pub fn move_player(
         moving_away_from_ground,
     );
 
-    if vertical_hit {
+    if vertical_hit.is_some() {
         velocity.y = 0.0;
     }
 
-    let landed = vertical_hit && moving_with_gravity;
+    let landed = vertical_hit.is_some() && moving_with_gravity;
 
     if landed
         || grounded(
@@ -197,5 +209,9 @@ pub fn move_player(
         transform.rotation = Quat::from_rotation_z(if gravity_dir.y < 0.0 { 0.0 } else { PI })
     } else {
         transform.rotate_z(AIR_SPIN_RADIANS_PER_SECOND * -gravity_dir.y * dt);
+    }
+
+    if fell_out_of_world(&transform, world) {
+        deaths.write(KillPlayer);
     }
 }

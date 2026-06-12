@@ -120,4 +120,10 @@ pub struct ResolvedObject {
     pub behavior: ObjectBehavior,
 }
 
-components!(LevelEntity, Solid, LevelMusic, AudioVisualizerBar);
+components!(
+    LevelEntity,
+    Solid,
+    KillPlayerOnSide,
+    LevelMusic,
+    AudioVisualizerBar
+);

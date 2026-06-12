@@ -3,12 +3,10 @@ pub mod triggers;
 
 use crate::AppState;
 use crate::config::Config;
-use crate::gameplay::death::{
-    DeathPause, KillPlayer, begin_death_pause, emit_out_of_world_deaths, tick_death_pause,
-};
+use crate::gameplay::death::{DeathPause, KillPlayer, begin_death_pause, tick_death_pause};
 use crate::gameplay::triggers::{TriggerState, apply_player_triggers};
-use crate::level::model::LevelEntity;
 use crate::level::load::CurrentLevel;
+use crate::level::model::LevelEntity;
 use crate::player::move_player;
 use bevy::prelude::*;
 
@@ -23,11 +21,7 @@ impl Plugin for GameplayPlugin {
             .add_systems(OnEnter(AppState::MainMenu), cleanup_gameplay);
         app.add_systems(
             Update,
-            (
-                apply_player_triggers,
-                emit_out_of_world_deaths,
-                begin_death_pause,
-            )
+            (apply_player_triggers, begin_death_pause)
                 .chain()
                 .after(move_player)
                 .run_if(in_state(AppState::Playing)),

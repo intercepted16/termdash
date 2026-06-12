@@ -1,9 +1,9 @@
 use crate::config::Config;
-use crate::gameplay::death::{KillPlayer, completion_percent};
+use crate::gameplay::death::KillPlayer;
 use crate::input::InputState;
-use crate::level::load::CurrentLevel;
 use crate::player::components::Player;
 use crate::player::queries::PlayerQuery;
+use avian2d::collision::collider::contact_query;
 use avian2d::prelude::{SpatialQuery, SpatialQueryFilter};
 use bevy::prelude::*;
 use ratatui::crossterm::event::KeyCode as TerminalKeyCode;
@@ -20,6 +20,7 @@ pub struct PlayerTrigger {
 #[serde(rename_all = "snake_case")]
 pub enum TriggerActivation {
     Touch,
+    TouchOnSide,
     JumpPressed,
 }
 
@@ -31,13 +32,52 @@ pub enum TriggerEffect {
     FlipGravity,
 }
 
-type PlayerTriggers<'w, 's> = Query<'w, 's, &'static PlayerTrigger, Without<Player>>;
+type PlayerTriggers<'w, 's> = Query<
+    'w,
+    's,
+    (
+        &'static PlayerTrigger,
+        &'static Transform,
+        &'static avian2d::prelude::Collider,
+    ),
+    Without<Player>,
+>;
 
 #[derive(Resource, Default)]
 pub struct TriggerState(pub HashSet<Entity>);
 
+const SIDE_CONTACT_MIN_ACROSS_GRAVITY: f32 = 0.25;
+
+fn trigger_rotation(transform: &Transform) -> f32 {
+    transform.rotation.to_euler(EulerRot::XYZ).2
+}
+
+fn touch_on_side(
+    player_collider: &avian2d::prelude::Collider,
+    player_transform: &Transform,
+    player: &Player,
+    trigger_collider: &avian2d::prelude::Collider,
+    trigger_transform: &Transform,
+) -> bool {
+    let Ok(Some(contact)) = contact_query::contact(
+        player_collider,
+        player_transform.translation.xy(),
+        trigger_rotation(player_transform),
+        trigger_collider,
+        trigger_transform.translation.xy(),
+        trigger_rotation(trigger_transform),
+        0.0,
+    ) else {
+        return false;
+    };
+
+    let across_gravity = player.gravity_dir.perp();
+    let normal = player_transform.rotation * contact.local_normal1.extend(0.0);
+
+    normal.xy().dot(across_gravity).abs() > SIDE_CONTACT_MIN_ACROSS_GRAVITY
+}
+
 pub fn apply_player_triggers(
-    current_world: Res<CurrentLevel>,
     mut deaths: MessageWriter<KillPlayer>,
     input: Res<InputState>,
     mut state: ResMut<TriggerState>,
@@ -45,10 +85,6 @@ pub fn apply_player_triggers(
     (player, triggers): (PlayerQuery, PlayerTriggers),
     config: Res<Config>,
 ) {
-    let Some(world) = current_world.0.as_ref() else {
-        return;
-    };
-
     let jump_pressed = input.just_pressed(TerminalKeyCode::Up);
     let world_units_per_pixel = config.camera.zoom;
     let (player_entity, player_transform, player_collider, mut velocity, mut player) =
@@ -71,13 +107,20 @@ pub fn apply_player_triggers(
     state.0.retain(|entity| hit_entities.contains(entity));
 
     for entity in hit_entities {
-        let Ok(trigger) = triggers.get(entity) else {
+        let Ok((trigger, trigger_transform, trigger_collider)) = triggers.get(entity) else {
             continue;
         };
 
         let active = match trigger.activation {
             TriggerActivation::Touch => true,
             TriggerActivation::JumpPressed => jump_pressed,
+            TriggerActivation::TouchOnSide => touch_on_side(
+                player_collider,
+                &player_transform,
+                &player,
+                trigger_collider,
+                trigger_transform,
+            ),
         };
 
         if !active {
@@ -95,9 +138,7 @@ pub fn apply_player_triggers(
                 velocity.0 += away_from_gravity * (current.max(minimum) - current);
             }
             TriggerEffect::KillPlayer => {
-                deaths.write(KillPlayer {
-                    percent: completion_percent(player_transform.translation.x, world),
-                });
+                deaths.write(KillPlayer);
             }
             TriggerEffect::FlipGravity => {
                 if just_entered {
