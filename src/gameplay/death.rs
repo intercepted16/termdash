@@ -90,14 +90,21 @@ pub fn tick_death_pause(
     player: PlayerQuery,
 ) {
     let (config, time, current_level, asset_server) = resources;
-
     let Some(world) = current_level.0.as_ref() else {
         return;
     };
+
     pause.timer.tick(time.delta());
+
     if !pause.timer.is_finished() {
         return;
     }
+
+    if pause.percent >= 100 {
+        next_state.set(AppState::MainMenu);
+        return;
+    }
+
     let spawn = world.player.spawn;
     let (_, mut transform, _, mut velocity, mut player) = player.into_inner();
 
