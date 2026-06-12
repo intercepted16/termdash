@@ -3,10 +3,12 @@ pub mod model;
 pub mod queries;
 pub mod registry;
 pub mod visualizer;
-use crate::level::load::{CurrentLevel, LoadWorldEvent, load_level};
+use crate::AppState;
+use crate::level::load::{CurrentLevel, LoadWorldEvent, animate_objects, load_level};
 use crate::level::model::Prefabs;
 use crate::level::registry::Levels;
 use crate::level::visualizer::update_audio_visualizer;
+use crate::player::move_player;
 use bevy::prelude::*;
 pub struct LevelPlugin;
 impl Plugin for LevelPlugin {
@@ -17,6 +19,10 @@ impl Plugin for LevelPlugin {
             )
             .insert_resource(Prefabs::load())
             .add_message::<LoadWorldEvent>()
-            .add_systems(Update, (load_level, update_audio_visualizer));
+            .add_systems(
+                Update,
+                (load_level.before(move_player), update_audio_visualizer),
+            )
+            .add_systems(Update, animate_objects.run_if(in_state(AppState::Playing)));
     }
 }

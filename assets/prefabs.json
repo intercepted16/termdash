@@ -80,7 +80,13 @@
 	"sawblade": {
 		"visual": {
 			"type": "sprite",
-			"path": "sprites/sawblade.png"
+			"path": "sprites/sawblade.png",
+			"animations": [
+				{
+					"type": "spin",
+					"degrees_per_second": 180.0
+				}
+			]
 		},
 		"behavior": {
 			"type": "trigger",

@@ -43,7 +43,7 @@ pub fn follow_player(
     let scale = projection_scale_or(projection, config.camera.zoom);
     let world_height = ratatui_camera.dimensions.y as f32 * scale;
     let ground_bottom = current_level
-        .0
+        .level
         .as_ref()
         .map(|level| level.ground.y - level.ground.height * 0.5)
         .unwrap();

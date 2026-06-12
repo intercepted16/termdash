@@ -120,7 +120,7 @@ pub fn move_player(
     let (config, time, input_state, current_level) = resources;
     let (solids, side_kill_solids, player) = queries;
     let dt = time.delta_secs();
-    let world = current_level.0.as_ref().unwrap();
+    let world = current_level.level.as_ref().unwrap();
 
     let forward_speed = world.scroll_speed_px * config.camera.zoom;
 

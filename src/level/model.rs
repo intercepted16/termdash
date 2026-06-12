@@ -108,9 +108,16 @@ pub enum ObjectBehavior {
 #[derive(Clone, Debug, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Visual {
-    Shape { shape: ObjectShape },
-    Sprite { path: String },
-    Scene { path: String },
+    Shape {
+        shape: ObjectShape,
+        #[serde(default)]
+        animations: Vec<ObjectAnimation>,
+    },
+    Sprite {
+        path: String,
+        #[serde(default)]
+        animations: Vec<ObjectAnimation>,
+    },
 }
 
 #[derive(Clone, Debug)]
@@ -120,10 +127,21 @@ pub struct ResolvedObject {
     pub behavior: ObjectBehavior,
 }
 
+#[derive(Deserialize, Clone, Debug)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum ObjectAnimation {
+    Spin { degrees_per_second: f32 },
+}
+
 components!(
     LevelEntity,
     Solid,
     KillPlayerOnSide,
     LevelMusic,
-    AudioVisualizerBar
+    AudioVisualizerBar,
 );
+
+newtype! {
+#[derive(Component, Clone)]
+pub struct ObjectAnimator(pub Vec<ObjectAnimation>);
+}

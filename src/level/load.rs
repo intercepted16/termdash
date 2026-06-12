@@ -2,20 +2,20 @@ use crate::config::Config;
 use crate::gameplay::triggers::PlayerTrigger;
 use crate::level::model::{KillPlayerOnSide, LevelEntity, LevelMusic, Solid};
 use crate::level::model::{
-    Level, LevelObject, ObjectBehavior, ObjectShape, Prefabs, ResolvedObject, Visual,
+    Level, LevelObject, ObjectAnimation, ObjectAnimator, ObjectBehavior, ObjectShape, Prefabs,
+    ResolvedObject, Visual,
 };
 use crate::level::queries::MusicEntities;
 use crate::level::registry::Levels;
-use crate::newtype;
 use crate::player::components::Player;
 use avian2d::prelude::{ColliderConstructor, RigidBody, Sensor};
 use bevy::prelude::*;
-use bevy::scene::SceneRoot;
 use std::fs;
 
-newtype! {
 #[derive(Resource, Default)]
-pub struct CurrentLevel(pub Option<Level>);
+pub struct CurrentLevel {
+    pub index: Option<usize>,
+    pub level: Option<Level>,
 }
 
 #[derive(Message)]
@@ -121,7 +121,7 @@ impl LevelObject {
             .as_ref()
             .or(prefab.collider.as_ref())
             .or(match &visual {
-                Visual::Shape { shape } => Some(shape),
+                Visual::Shape { shape, .. } => Some(shape),
                 _ => None,
             })
             .expect("non-shape objects should have a collider");
@@ -146,19 +146,17 @@ impl Visual {
         asset_server: &AssetServer,
     ) {
         match self {
-            Visual::Shape { shape } => {
-                shape.insert(entity, meshes, materials, color.unwrap_or(Color::WHITE))
+            Visual::Shape { shape, animations } => {
+                shape.insert(entity, meshes, materials, color.unwrap_or(Color::WHITE));
+                ObjectAnimation::insert_all(entity, animations);
             }
-            Visual::Sprite { path } => {
+            Visual::Sprite { path, animations } => {
                 let mut sprite = Sprite::from_image(asset_server.load(path));
                 if let Some(color) = color {
                     sprite.color = color
                 };
                 entity.insert(sprite);
-            }
-
-            Visual::Scene { path } => {
-                entity.insert(SceneRoot(asset_server.load(path)));
+                ObjectAnimation::insert_all(entity, animations);
             }
         }
     }
@@ -203,7 +201,8 @@ pub fn load_level(
         spawn_music(&mut commands, &config, &asset_server, level);
         commands.spawn((LevelEntity, Player::bundle(&level.player)));
 
-        current_level.0 = Some(level.clone());
+        current_level.index = Some(event.index);
+        current_level.level = Some(level.clone());
     }
 }
 
@@ -231,6 +230,30 @@ pub fn spawn_music(
             for bundle in visualizer.bundles(level) {
                 commands.spawn(bundle);
             }
+        }
+    }
+}
+
+impl ObjectAnimation {
+    pub fn insert_all(entity: &mut EntityCommands, animations: Vec<Self>) {
+        if !animations.is_empty() {
+            entity.insert(ObjectAnimator(animations));
+        }
+    }
+
+    pub fn animate(&self, transform: &mut Transform, time: &Time) {
+        match self {
+            ObjectAnimation::Spin { degrees_per_second } => {
+                transform.rotate_z(degrees_per_second.to_radians() * time.delta_secs());
+            }
+        }
+    }
+}
+
+pub fn animate_objects(time: Res<Time>, mut query: Query<(&ObjectAnimator, &mut Transform)>) {
+    for (animator, mut transform) in &mut query {
+        for animation in animator.0.clone() {
+            animation.animate(&mut transform, &time);
         }
     }
 }

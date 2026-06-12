@@ -38,6 +38,7 @@ fn cleanup_gameplay(
     for entity in &entities {
         commands.entity(entity).despawn();
     }
-    current_level.0 = None;
+    current_level.index = None;
+    current_level.level = None;
     trigger_state.0.clear();
 }
