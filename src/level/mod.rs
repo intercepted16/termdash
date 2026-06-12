@@ -1,4 +1,3 @@
-pub mod components;
 pub mod load;
 pub mod model;
 pub mod queries;

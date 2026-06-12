@@ -1,6 +1,5 @@
 use crate::gameplay::triggers::{TriggerActivation, TriggerEffect};
-use crate::level::components::{LevelEntity, Solid};
-use crate::newtype;
+use crate::{components, newtype};
 use avian2d::collision::collider::ColliderConstructor;
 use avian2d::prelude::{Collider, RigidBody};
 use bevy::prelude::*;
@@ -120,3 +119,5 @@ pub struct ResolvedObject {
     pub collider: ColliderConstructor,
     pub behavior: ObjectBehavior,
 }
+
+components!(LevelEntity, Solid, LevelMusic, AudioVisualizerBar);

@@ -7,7 +7,7 @@ use crate::gameplay::death::{
     DeathPause, KillPlayer, begin_death_pause, emit_out_of_world_deaths, tick_death_pause,
 };
 use crate::gameplay::triggers::{TriggerState, apply_player_triggers};
-use crate::level::components::LevelEntity;
+use crate::level::model::LevelEntity;
 use crate::level::load::CurrentLevel;
 use crate::player::move_player;
 use bevy::prelude::*;

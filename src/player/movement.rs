@@ -1,6 +1,6 @@
 use crate::config::Config;
 use crate::input::InputState;
-use crate::level::components::Solid;
+use crate::level::model::Solid;
 use crate::level::load::CurrentLevel;
 use crate::player::queries::PlayerQuery;
 

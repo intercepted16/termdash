@@ -1,6 +1,6 @@
 use crate::config::Config;
 use crate::gameplay::triggers::PlayerTrigger;
-use crate::level::components::{LevelEntity, LevelMusic, Solid};
+use crate::level::model::{LevelEntity, LevelMusic, Solid};
 use crate::level::model::{
     Level, LevelObject, ObjectBehavior, ObjectShape, Prefabs, ResolvedObject, Visual,
 };

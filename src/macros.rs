@@ -26,3 +26,11 @@ macro_rules! newtype {
         }
     };
 }
+
+/// Generate Bevy marker components with no additional traits.
+#[macro_export]
+macro_rules! components {
+    ($($component:ident),* $(,)?) => {
+        $(#[derive(Component)] pub struct $component;)*
+    };
+}

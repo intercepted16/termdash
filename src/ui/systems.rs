@@ -1,6 +1,6 @@
 use crate::AppState;
 use crate::input::InputState;
-use crate::level::components::LevelMusic;
+use crate::level::model::LevelMusic;
 use crate::level::load::LoadWorldEvent;
 use crate::level::registry::Levels;
 use crate::ui::model::MenuState;
