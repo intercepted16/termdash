@@ -56,8 +56,8 @@ impl ObjectShape {
                     MeshMaterial2d(materials.add(color)),
                 ));
             }
-            l => {
-                panic!("{l:?} shape is not supported")
+            s => {
+                panic!("{s:?} shape is not supported")
             }
         }
     }
