@@ -40,6 +40,10 @@ impl Levels {
             })
             .collect::<Result<Vec<_>, _>>()?;
 
+        if levels.is_empty() {
+            return Err("there are no levels".to_string());
+        }
+
         Ok(Self(levels))
     }
 }

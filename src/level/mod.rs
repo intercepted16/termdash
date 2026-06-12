@@ -12,7 +12,9 @@ pub struct LevelPlugin;
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<CurrentLevel>()
-            .insert_resource(Levels::load().expect("failed to load worlds"))
+            .insert_resource(
+                Levels::load().unwrap_or_else(|err| panic!("failed to load worlds: {}", err)),
+            )
             .insert_resource(Prefabs::load())
             .add_message::<LoadWorldEvent>()
             .add_systems(Update, (load_level, update_audio_visualizer));

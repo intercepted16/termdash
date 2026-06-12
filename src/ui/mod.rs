@@ -29,7 +29,7 @@ pub fn render(
     mut tui: ResMut<RatatuiContext>,
     state: Res<State<AppState>>,
     menu: Option<Res<MenuState>>,
-    worlds: Option<Res<Levels>>,
+    worlds: Res<Levels>,
     pause: Option<Res<DeathPause>>,
     mut camera: Query<(&mut RatatuiCameraWidget, &mut RatatuiCamera)>,
 ) {
@@ -51,7 +51,7 @@ pub fn render(
         match state.get() {
             AppState::MainMenu => {
                 let menu = menu.unwrap();
-                let levels = worlds.unwrap();
+                let levels = worlds;
 
                 let area = f.area();
                 let center_area = center(76, area.height.saturating_sub(2), area);
@@ -90,15 +90,10 @@ pub fn render(
                 );
 
                 f.render_widget(
-                    Paragraph::new(
-                        levels
-                            .get(menu.0)
-                            .map(|w| w.description.as_str())
-                            .unwrap_or("No levels available."),
-                    )
-                    .wrap(Wrap { trim: true })
-                    .style(BASE)
-                    .block(block(" Details ")),
+                    Paragraph::new(levels[menu.0].description.clone())
+                        .wrap(Wrap { trim: true })
+                        .style(BASE)
+                        .block(block(" Details ")),
                     details,
                 );
 

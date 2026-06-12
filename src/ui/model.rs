@@ -9,9 +9,7 @@ impl MenuState {
     pub fn previous(&mut self) {
         self.0 = self.saturating_sub(1);
     }
-    pub fn next(&mut self, world_count: usize) {
-        if world_count > 0 {
-            self.0 = (self.0 + 1).min(world_count - 1);
-        }
+    pub fn next(&mut self, level_count: usize) {
+        self.0 = (self.0 + 1).min(level_count - 1);
     }
 }
