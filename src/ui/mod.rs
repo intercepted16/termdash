@@ -7,11 +7,15 @@ use bevy::prelude::*;
 use bevy_ratatui::RatatuiContext;
 use bevy_ratatui_camera::{RatatuiCamera, RatatuiCameraWidget};
 use ratatui::{
-    layout::{Alignment::Center, Constraint::Length, Direction::Vertical, Layout, Rect},
+    buffer::Buffer,
+    layout::{
+        Alignment::Center, Constraint, Constraint::Length, Direction::Vertical, Layout, Rect,
+    },
     style::{Color::*, Modifier, Style},
     text::{Line, Text},
     widgets::*,
 };
+use tui_big_text::{BigText, PixelSize};
 
 use crate::{AppState, gameplay::death::DeathPause, level::registry::Levels, ui::model::MenuState};
 
@@ -127,45 +131,41 @@ pub fn render(
                     area,
                 );
             }
-
             AppState::Dead => {
                 render_camera(&mut camera, f.area(), f.buffer_mut());
 
-                const FONT: [&str; 11] = [
-                    "███|█ █|█ █|█ █|███",
-                    " ██|  █|  █|  █| ███",
-                    "███|  █|███|█  |███",
-                    "███|  █|███|  █|███",
-                    "█ █|█ █|███|  █|  █",
-                    "███|█  |███|  █|███",
-                    "███|█  |███|█ █|███",
-                    "███|  █|  █|  █|  █",
-                    "███|█ █|███|█ █|███",
-                    "███|█ █|███|  █|███",
-                    "█   █|   █ |  █  | █   |█   █",
-                ];
+                let [_, logo_area, _] = Layout::vertical([
+                    Constraint::Fill(1),
+                    Constraint::Length(8),
+                    Constraint::Fill(1),
+                ])
+                .areas(f.area());
 
-                let glyphs = pause
-                    .unwrap()
-                    .percent
-                    .to_string()
-                    .bytes()
-                    .map(|d| FONT[(d - b'0') as usize])
-                    .chain([FONT[10]])
-                    .map(|g| g.split('|').collect::<Vec<_>>())
-                    .collect::<Vec<_>>();
+                let text = format!("{}%", pause.unwrap().percent);
+                let widget = BigText::builder()
+                    .lines(vec![Line::from(text)])
+                    .pixel_size(PixelSize::Full)
+                    .style(HI)
+                    .centered()
+                    .build();
 
-                let lines = (0..5)
-                    .map(|r| Line::from(glyphs.iter().map(|g| g[r]).collect::<Vec<_>>().join(" ")))
-                    .collect::<Vec<_>>();
+                let mut text_buffer = Buffer::empty(logo_area);
+                widget.render(logo_area, &mut text_buffer);
 
-                let area = center(
-                    lines.iter().map(Line::width).max().unwrap_or(0) as u16,
-                    5,
-                    f.area(),
-                );
+                // Strip blank symbols; we want only the text
+                for y in logo_area.top()..logo_area.bottom() {
+                    for x in logo_area.left()..logo_area.right() {
+                        let source = &text_buffer[(x, y)];
+                        if source.symbol() == " " {
+                            continue;
+                        }
 
-                f.render_widget(Paragraph::new(lines).alignment(Center).style(HI), area);
+                        f.buffer_mut()[(x, y)]
+                            .set_symbol(source.symbol())
+                            .set_fg(source.fg)
+                            .modifier = source.modifier;
+                    }
+                }
             }
         }
     });
