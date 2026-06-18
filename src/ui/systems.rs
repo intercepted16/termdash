@@ -8,14 +8,12 @@ use crate::ui::render;
 use bevy::prelude::*;
 use ratatui::crossterm::event::KeyCode as TerminalKeyCode;
 
-pub struct MenuPlugin;
+pub struct UiPlugin;
 
-impl Plugin for MenuPlugin {
+impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<MenuState>()
             .add_systems(Update, main_menu_input.run_if(in_state(AppState::MainMenu)))
-            .add_systems(Update, pause_input.run_if(in_state(AppState::Playing)))
-            .add_systems(Update, paused_menu_input.run_if(in_state(AppState::Paused)))
             .add_systems(OnEnter(AppState::Paused), music_playing::<true>)
             .add_systems(
                 OnTransition {
@@ -47,22 +45,6 @@ fn main_menu_input(
         load_world_events.write(LoadWorldEvent { index: menu.0 });
 
         next_state.set(AppState::Playing);
-    }
-}
-
-fn pause_input(input: Res<InputState>, mut next_state: ResMut<NextState<AppState>>) {
-    if input.just_pressed(TerminalKeyCode::Esc) {
-        next_state.set(AppState::Paused);
-    }
-}
-
-fn paused_menu_input(input: Res<InputState>, mut next_state: ResMut<NextState<AppState>>) {
-    if input.just_pressed(TerminalKeyCode::Esc) {
-        next_state.set(AppState::Playing);
-    }
-
-    if input.just_pressed(TerminalKeyCode::Enter) {
-        next_state.set(AppState::MainMenu);
     }
 }
 

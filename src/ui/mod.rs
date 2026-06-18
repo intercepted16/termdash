@@ -1,7 +1,7 @@
 pub mod model;
 mod systems;
 use crate::core::camera::render_camera;
-pub use systems::MenuPlugin;
+pub use systems::UiPlugin;
 
 use bevy::prelude::*;
 use bevy_ratatui::RatatuiContext;
@@ -17,11 +17,16 @@ use ratatui::{
 };
 use tui_big_text::{BigText, PixelSize};
 
-use crate::{AppState, gameplay::death::DeathPause, level::registry::Levels, ui::model::MenuState};
+use crate::{
+    AppState, gameplay::death::DeathPause, level::registry::Levels, state::EditorAvailability,
+    ui::model::MenuState,
+};
 
 const BASE: Style = Style::new().fg(White);
-const HI: Style = Style::new().fg(Cyan).add_modifier(Modifier::BOLD);
+pub(crate) const HI: Style = Style::new().fg(Cyan).add_modifier(Modifier::BOLD);
 const BORDER: Style = Style::new().fg(Green);
+type WorldUiResources<'w> = Res<'w, Levels>;
+type OverlayResources<'w> = Option<Res<'w, DeathPause>>;
 
 const BANNER: &str = r#" _____                     ____            _
 |_   _|__ _ __ _ __ ___   |  _ \  __ _ ___| |__
@@ -32,11 +37,15 @@ const BANNER: &str = r#" _____                     ____            _
 pub fn render(
     mut tui: ResMut<RatatuiContext>,
     state: Res<State<AppState>>,
+    editor: Res<EditorAvailability>,
     menu: Option<Res<MenuState>>,
-    worlds: Res<Levels>,
-    pause: Option<Res<DeathPause>>,
+    world_resources: WorldUiResources,
+    overlays: OverlayResources,
     mut camera: Query<(&mut RatatuiCameraWidget, &mut RatatuiCamera)>,
 ) {
+    let worlds = world_resources;
+    let pause = overlays;
+
     let _ = tui.draw(|f| {
         let block = |t| {
             Block::default()
@@ -56,6 +65,17 @@ pub fn render(
             AppState::MainMenu => {
                 let menu = menu.unwrap();
                 let levels = worlds;
+                if levels.is_empty() {
+                    let area = center(60, 8, f.area());
+                    f.render_widget(
+                        Paragraph::new("No levels found in assets/worlds")
+                            .alignment(Center)
+                            .style(HI)
+                            .block(block(" Worlds ")),
+                        area,
+                    );
+                    return;
+                }
 
                 let area = f.area();
                 let center_area = center(76, area.height.saturating_sub(2), area);
@@ -78,7 +98,6 @@ pub fn render(
                 f.render_stateful_widget(
                     List::new(
                         levels
-                            .0
                             .iter()
                             .map(|w| ListItem::new(Line::styled(format!("  {}", w.name), BASE))),
                     )
@@ -117,17 +136,21 @@ pub fn render(
                 render_camera(&mut camera, f.area(), f.buffer_mut());
 
                 let area = center(42, 9, f.area());
+                let mut lines = vec![
+                    Line::styled("Paused", HI),
+                    Line::raw(""),
+                    Line::styled("Esc: resume", BASE),
+                    Line::styled("Enter: main menu", BASE),
+                ];
+                if editor.graphical {
+                    lines.insert(3, Line::styled("E: editor", BASE));
+                }
 
                 f.render_widget(Clear, area);
                 f.render_widget(
-                    Paragraph::new(vec![
-                        Line::styled("Paused", HI),
-                        Line::raw(""),
-                        Line::styled("Esc: resume", BASE),
-                        Line::styled("Enter: main menu", BASE),
-                    ])
-                    .alignment(Center)
-                    .block(block(" Menu ")),
+                    Paragraph::new(lines)
+                        .alignment(Center)
+                        .block(block(" Menu ")),
                     area,
                 );
             }
@@ -166,6 +189,10 @@ pub fn render(
                             .modifier = source.modifier;
                     }
                 }
+            }
+
+            AppState::Editing => {
+                render_camera(&mut camera, f.area(), f.buffer_mut());
             }
         }
     });

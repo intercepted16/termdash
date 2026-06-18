@@ -19,6 +19,7 @@ impl Config {
 pub struct GameConfig {
     pub fps: f64,
     pub logfile: String, // relative to working dir
+    pub graphics: bool
 }
 
 #[derive(Debug, Deserialize)]

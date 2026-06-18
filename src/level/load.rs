@@ -10,11 +10,14 @@ use crate::level::registry::Levels;
 use crate::player::components::Player;
 use avian2d::prelude::{ColliderConstructor, RigidBody, Sensor};
 use bevy::prelude::*;
+use std::fmt;
 use std::fs;
+use std::path::PathBuf;
 
 #[derive(Resource, Default)]
 pub struct CurrentLevel {
     pub index: Option<usize>,
+    pub path: Option<PathBuf>,
     pub level: Option<Level>,
 }
 
@@ -57,7 +60,7 @@ impl ObjectShape {
                 ));
             }
             s => {
-                panic!("{s:?} shape is not supported")
+                warn!("skipping unsupported shape visual: {s:?}");
             }
         }
     }
@@ -83,12 +86,19 @@ impl ObjectBehavior {
 impl LevelObject {
     pub fn spawn(
         &self,
+        index: usize,
         commands: &mut Commands,
         (meshes, materials): (&mut Assets<Mesh>, &mut Assets<ColorMaterial>),
         prefabs: &Prefabs,
         asset_server: &AssetServer,
     ) {
-        let resolved = self.resolve(prefabs);
+        let resolved = match self.resolve(prefabs) {
+            Ok(resolved) => resolved,
+            Err(err) => {
+                warn!("skipping unresolved level object #{index}: {err}: {self:?}");
+                return;
+            }
+        };
 
         let mut entity = commands.spawn((
             LevelEntity,
@@ -103,35 +113,60 @@ impl LevelObject {
             .visual
             .spawn(&mut entity, meshes, materials, self.color, asset_server);
     }
-    fn resolve(&self, prefabs: &Prefabs) -> ResolvedObject {
-        let prefab = self
-            .prefab
-            .as_ref()
-            .map(|name| {
+    fn resolve(&self, prefabs: &Prefabs) -> Result<ResolvedObject, ResolveObjectError> {
+        let prefab = match &self.prefab {
+            Some(name) => Some(
                 prefabs
                     .get(name)
-                    .unwrap_or_else(|| panic!("Unknown prefab: {name}"))
-            })
-            .unwrap_or_else(|| panic!("couldn't get prefab"));
+                    .ok_or_else(|| ResolveObjectError::UnknownPrefab(name.clone()))?,
+            ),
+            None => None,
+        };
 
-        let visual = self.visual.clone().unwrap_or_else(|| prefab.visual.clone());
+        let visual = self
+            .visual
+            .clone()
+            .or_else(|| prefab.map(|prefab| prefab.visual.clone()))
+            .ok_or(ResolveObjectError::MissingVisual)?;
 
         let collider = self
             .collider
             .as_ref()
-            .or(prefab.collider.as_ref())
+            .or_else(|| prefab.and_then(|prefab| prefab.collider.as_ref()))
             .or(match &visual {
                 Visual::Shape { shape, .. } => Some(shape),
                 _ => None,
             })
-            .expect("non-shape objects should have a collider");
+            .ok_or(ResolveObjectError::MissingCollider)?;
 
-        let behavior = self.behavior.or(prefab.behavior).expect("missing behavior");
+        let behavior = self
+            .behavior
+            .as_ref()
+            .or_else(|| prefab.and_then(|prefab| prefab.behavior.as_ref()))
+            .ok_or(ResolveObjectError::MissingBehavior)?;
 
-        ResolvedObject {
+        Ok(ResolvedObject {
             visual: visual.clone(),
-            behavior,
+            behavior: behavior.clone(),
             collider: collider.clone(),
+        })
+    }
+}
+
+enum ResolveObjectError {
+    UnknownPrefab(String),
+    MissingVisual,
+    MissingCollider,
+    MissingBehavior,
+}
+
+impl fmt::Display for ResolveObjectError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::UnknownPrefab(name) => write!(f, "unknown prefab {name:?}"),
+            Self::MissingVisual => f.write_str("missing visual"),
+            Self::MissingCollider => f.write_str("missing collider"),
+            Self::MissingBehavior => f.write_str("missing behavior"),
         }
     }
 }
@@ -175,7 +210,7 @@ pub fn load_level(
     let (mut meshes, mut materials) = render_assets;
 
     for event in events.read() {
-        let Some(level) = registry.0.get(event.index) else {
+        let Some(level) = registry.get(event.index) else {
             continue;
         };
 
@@ -189,8 +224,9 @@ pub fn load_level(
             commands.spawn(segment.make(&level.ground));
         }
 
-        for object in &level.objects {
+        for (index, object) in level.objects.iter().enumerate() {
             object.spawn(
+                index,
                 &mut commands,
                 (&mut meshes, &mut materials),
                 &prefabs,
@@ -202,6 +238,7 @@ pub fn load_level(
         commands.spawn((LevelEntity, Player::bundle(&level.player)));
 
         current_level.index = Some(event.index);
+        current_level.path = registry.path(event.index).map(PathBuf::from);
         current_level.level = Some(level.clone());
     }
 }

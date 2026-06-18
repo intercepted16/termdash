@@ -51,6 +51,7 @@ pub fn follow_player(
     camera_transform.translation.x = player.translation.x;
     camera_transform.translation.y = ground_bottom + world_height * 0.5 - bottom_margin;
 }
+
 fn setup_camera(mut commands: Commands, config: Res<Config>) {
     commands.spawn((
         Camera2d,

@@ -1,25 +1,35 @@
 use crate::level::model::Level;
-use crate::newtype;
 
 use bevy::prelude::Resource;
 use std::fs;
-use std::path::Path;
+use std::ops::{Deref, DerefMut};
+use std::path::{Path, PathBuf};
 
-newtype! {
 #[derive(Resource, Default)]
-pub struct Levels(pub Vec<Level>);
+pub struct Levels {
+    levels: Vec<Level>,
+    paths: Vec<PathBuf>,
+}
+
+impl Deref for Levels {
+    type Target = Vec<Level>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.levels
+    }
+}
+
+impl DerefMut for Levels {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.levels
+    }
 }
 
 impl Levels {
-    pub fn load() -> Result<Self, String> {
-        let world_dir = Path::new("assets/worlds");
-
-        if !world_dir.exists() {
-            return Err("level directory does not exist".to_string());
-        }
-
-        let mut paths = fs::read_dir(world_dir)
-            .map_err(|err| err.to_string())?
+    /// Get all the level paths from the levels directory; or None if there was an issue or 0 were found.
+    pub fn paths() -> Option<Vec<PathBuf>> {
+        let mut paths = fs::read_dir(Path::new("assets/worlds"))
+            .ok()?
             .filter_map(|entry| entry.ok().map(|entry| entry.path()))
             .filter(|path| {
                 path.extension()
@@ -28,22 +38,30 @@ impl Levels {
             .collect::<Vec<_>>();
 
         paths.sort();
+        if paths.is_empty() {
+            return None;
+        }
+        Some(paths)
+    }
+
+    pub fn path(&self, index: usize) -> Option<&Path> {
+        self.paths.get(index).map(PathBuf::as_path)
+    }
+
+    pub fn load() -> Result<Self, String> {
+        let paths = Levels::paths().ok_or("no levels found")?;
 
         let levels = paths
-            .into_iter()
+            .iter()
             .map(|path| {
-                let contents = fs::read_to_string(&path)
-                    .map_err(|err| format!("{}: {err}", path.display()))?;
+                let contents =
+                    fs::read_to_string(path).map_err(|err| format!("{}: {err}", path.display()))?;
 
                 serde_json::from_str::<Level>(&contents)
                     .map_err(|err| format!("{}: {err}", path.display()))
             })
             .collect::<Result<Vec<_>, _>>()?;
 
-        if levels.is_empty() {
-            return Err("there are no levels".to_string());
-        }
-
-        Ok(Self(levels))
+        Ok(Self { levels, paths })
     }
 }

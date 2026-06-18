@@ -1,6 +1,7 @@
 [game]
 fps = 60.0
 logfile = "app.log"
+graphics = true
 
 [camera]
 zoom = 3.0

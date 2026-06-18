@@ -5,6 +5,8 @@ edition = "2024"
 
 [dependencies]
 bevy = { version = "0.17.3", features = ["dynamic_linking", "serialize"] }
+bevy_egui = "0.38.0"
+bevy-inspector-egui = "0.35.0"
 bevy_ratatui = "0.10.0"
 bevy_ratatui_camera = "0.16.0"
 crossterm = "0.28.1"
@@ -20,7 +22,8 @@ tracing = "0.1.44"
 tracing-appender = "0.2.5"
 avian2d = { version = "0.4.1", features = ["serialize"] }
 tui-big-text = "0.7.1"
-
+level_data_macros = { path = "level_data_macros" }
+inventory = "0.3"
 
 # perf
 [profile.dev]
@@ -28,3 +31,9 @@ opt-level = 1
 
 [profile.dev.package."*"]
 opt-level = 3
+
+[workspace]
+members = [
+    ".",
+    "level_data_macros",
+]

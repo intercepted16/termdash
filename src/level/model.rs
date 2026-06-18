@@ -3,11 +3,23 @@ use crate::{components, newtype};
 use avian2d::collision::collider::ColliderConstructor;
 use avian2d::prelude::{Collider, RigidBody};
 use bevy::prelude::*;
-use serde::Deserialize;
+use level_data_macros::level_data;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Clone, Debug, Deserialize)]
+pub struct LevelDataRegistration(pub fn(&mut App));
+
+inventory::collect!(LevelDataRegistration);
+
+pub fn register_level_data_types(app: &mut App) {
+    for registration in inventory::iter::<LevelDataRegistration> {
+        registration.0(app);
+    }
+}
+
+#[level_data]
 pub struct Level {
+    pub id: Option<String>,
     pub name: String,
     pub description: String,
     pub size: Vec2,
@@ -17,18 +29,17 @@ pub struct Level {
     #[serde(default)]
     pub objects: Vec<LevelObject>,
     pub music_path: Option<String>,
-    #[serde(default)]
     pub audio_visualizer: Option<AudioVisualizer>,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[level_data]
 pub struct PlayerDef {
     pub spawn: Vec2,
     pub size: Vec2,
     pub color: Color,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[level_data]
 pub struct Ground {
     pub y: f32,
     pub height: f32,
@@ -36,13 +47,13 @@ pub struct Ground {
     pub segments: Vec<GroundSegment>,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[level_data(Default)]
 pub struct AudioVisualizer {
     #[serde(default)]
     pub bar_count: usize,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[level_data]
 pub struct GroundSegment {
     pub start_x: f32,
     pub width: f32,
@@ -70,14 +81,17 @@ fn default_scale() -> f32 {
     1.0
 }
 
-#[derive(Clone, Debug, Deserialize)]
+fn is_default_scale(scale: &f32) -> bool {
+    *scale == default_scale()
+}
+
+#[level_data(Default)]
 pub struct LevelObject {
-    pub position: Vec2,
-    #[serde(default = "default_scale")]
-    pub scale: f32, // scale size relative to the defined prefab size
-    pub color: Option<Color>,
-    #[serde(default)]
     pub prefab: Option<String>,
+    pub position: Vec2,
+    #[serde(default = "default_scale", skip_serializing_if = "is_default_scale")]
+    pub scale: f32,
+    pub color: Option<Color>,
     pub visual: Option<Visual>,
     pub collider: Option<ColliderConstructor>,
     pub behavior: Option<ObjectBehavior>,
@@ -91,11 +105,11 @@ pub struct Prefab {
 }
 
 newtype! {
-#[derive(Deserialize, Clone, Debug)]
+#[level_data]
 pub struct ObjectShape(pub ColliderConstructor);
 }
 
-#[derive(Clone, Copy, Debug, Deserialize)]
+#[level_data(PartialEq)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ObjectBehavior {
     Solid,
@@ -105,7 +119,7 @@ pub enum ObjectBehavior {
     },
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[level_data]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Visual {
     Shape {
@@ -127,7 +141,7 @@ pub struct ResolvedObject {
     pub behavior: ObjectBehavior,
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[level_data]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ObjectAnimation {
     Spin { degrees_per_second: f32 },

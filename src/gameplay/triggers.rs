@@ -6,17 +6,18 @@ use crate::player::queries::PlayerQuery;
 use avian2d::collision::collider::contact_query;
 use avian2d::prelude::{SpatialQuery, SpatialQueryFilter};
 use bevy::prelude::*;
+use level_data_macros::level_data;
 use ratatui::crossterm::event::KeyCode as TerminalKeyCode;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
-#[derive(Deserialize, Clone, Copy, Component, Debug)]
+#[level_data(Component)]
 pub struct PlayerTrigger {
     pub activation: TriggerActivation,
     pub effect: TriggerEffect,
 }
 
-#[derive(Deserialize, Clone, Copy, Debug)]
+#[level_data(PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum TriggerActivation {
     Touch,
@@ -24,7 +25,7 @@ pub enum TriggerActivation {
     JumpPressed,
 }
 
-#[derive(Deserialize, Clone, Copy, Debug)]
+#[level_data(PartialEq)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum TriggerEffect {
     SetMinVerticalSpeedPx { speed_px: f32 },
@@ -142,8 +143,7 @@ pub fn apply_player_triggers(
             }
             TriggerEffect::FlipGravity => {
                 if just_entered {
-                    player.gravity_dir = Dir2::new(-player.gravity_dir.as_vec2())
-                        .expect("gravity direction must stay normalized");
+                    player.gravity_dir = -player.gravity_dir;
                 }
             }
         }
