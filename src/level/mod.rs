@@ -18,10 +18,13 @@ impl Plugin for LevelPlugin {
             let paths = app.world().resource::<GamePaths>();
             Prefabs::load(paths)
         };
+        let levels = {
+            let paths = app.world().resource::<GamePaths>();
+            Levels::load(paths).unwrap_or_else(|err| panic!("failed to load worlds: {}", err))
+        };
+
         app.init_resource::<CurrentLevel>()
-            .insert_resource(
-                Levels::load().unwrap_or_else(|err| panic!("failed to load worlds: {}", err)),
-            )
+            .insert_resource(levels)
             .insert_resource(prefabs)
             .add_message::<LoadWorldEvent>()
             .add_systems(

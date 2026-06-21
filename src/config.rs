@@ -15,7 +15,7 @@ pub struct Config {
 
 impl Config {
     pub fn load(paths: &GamePaths) -> Result<Self, Box<dyn std::error::Error>> {
-        let contents = fs::read_to_string(&paths.config("config.toml"))?;
+        let contents = fs::read_to_string(paths.config("config.toml"))?;
         Ok(toml::from_str(&contents)?)
     }
 }
@@ -23,7 +23,7 @@ impl Config {
 #[derive(Debug, Deserialize)]
 pub struct GameConfig {
     pub fps: f64,
-    pub logfile: String, // relative to working dir
+    pub logfile: String, // relative to the data dir unless absolute
     pub graphics: bool,
 }
 

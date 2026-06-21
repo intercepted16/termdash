@@ -41,6 +41,15 @@ impl GamePaths {
         self.data_dir.join(path)
     }
 
+    pub fn data_file(&self, path: impl AsRef<Path>) -> PathBuf {
+        let path = path.as_ref();
+        if path.is_absolute() {
+            path.to_path_buf()
+        } else {
+            self.data_dir.join(path)
+        }
+    }
+
     pub fn config(&self, path: impl AsRef<Path>) -> PathBuf {
         self.config_dir.join(path)
     }

@@ -1,4 +1,5 @@
 use crate::level::model::Level;
+use crate::paths::GamePaths;
 
 use bevy::prelude::Resource;
 use std::fs;
@@ -27,8 +28,8 @@ impl DerefMut for Levels {
 
 impl Levels {
     /// Get all the level paths from the levels directory; or None if there was an issue or 0 were found.
-    pub fn paths() -> Option<Vec<PathBuf>> {
-        let mut paths = fs::read_dir(Path::new("assets/worlds"))
+    pub fn paths(paths: &GamePaths) -> Option<Vec<PathBuf>> {
+        let mut paths = fs::read_dir(paths.asset("worlds"))
             .ok()?
             .filter_map(|entry| entry.ok().map(|entry| entry.path()))
             .filter(|path| {
@@ -48,8 +49,8 @@ impl Levels {
         self.paths.get(index).map(PathBuf::as_path)
     }
 
-    pub fn load() -> Result<Self, String> {
-        let paths = Levels::paths().ok_or("no levels found")?;
+    pub fn load(game_paths: &GamePaths) -> Result<Self, String> {
+        let paths = Levels::paths(game_paths).ok_or("no levels found")?;
 
         let levels = paths
             .iter()
