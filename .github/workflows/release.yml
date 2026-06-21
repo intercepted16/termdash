@@ -1,0 +1,90 @@
+name: Build binaries
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      linux:
+        description: "Build Linux"
+        type: boolean
+        default: true
+      macos:
+        description: "Build macOS"
+        type: boolean
+        default: true
+      windows:
+        description: "Build Windows"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux
+            os: ubuntu-latest
+            artifact: termdash-linux
+            binary: termdash
+            enabled: ${{ github.event_name != 'workflow_dispatch' || inputs.linux }}
+
+          - name: macos
+            os: macos-latest
+            artifact: termdash-macos
+            binary: termdash
+            enabled: ${{ github.event_name != 'workflow_dispatch' || inputs.macos }}
+
+          - name: windows
+            os: windows-latest
+            artifact: termdash-windows.exe
+            binary: termdash.exe
+            enabled: ${{ github.event_name != 'workflow_dispatch' || inputs.windows }}
+
+    steps:
+      - name: Skip disabled target
+        if: ${{ !matrix.enabled }}
+        run: echo "Skipping ${{ matrix.name }}"
+
+      - uses: actions/checkout@v4
+        if: ${{ matrix.enabled }}
+
+      - name: Install Rust
+        if: ${{ matrix.enabled }}
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        if: ${{ matrix.enabled }}
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build
+        if: ${{ matrix.enabled }}
+        run: cargo build --release --locked
+
+      - name: Prepare binary
+        if: ${{ matrix.enabled }}
+        shell: bash
+        run: |
+          mkdir dist
+          cp "target/release/${{ matrix.binary }}" "dist/${{ matrix.artifact }}"
+
+      - name: Upload artifact
+        if: ${{ matrix.enabled }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/${{ matrix.artifact }}
+
+      - name: Upload to GitHub Release
+        if: ${{ matrix.enabled && startsWith(github.ref, 'refs/tags/') }}
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/${{ matrix.artifact }}
