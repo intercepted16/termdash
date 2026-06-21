@@ -1,3 +1,4 @@
+# the default config file
 [game]
 fps = 60.0
 logfile = "app.log"

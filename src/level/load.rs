@@ -7,6 +7,7 @@ use crate::level::model::{
 };
 use crate::level::queries::MusicEntities;
 use crate::level::registry::Levels;
+use crate::paths::GamePaths;
 use crate::player::components::Player;
 use avian2d::prelude::{ColliderConstructor, RigidBody, Sensor};
 use bevy::prelude::*;
@@ -27,9 +28,10 @@ pub struct LoadWorldEvent {
 }
 
 impl Prefabs {
-    pub fn load() -> Self {
-        let raw = fs::read_to_string("assets/prefabs.json").expect("failed to read prefabs.json");
-        Prefabs(serde_json::from_str(&raw).expect("malformed prefabs JSON"))
+    pub fn load(paths: &GamePaths) -> Self {
+        let raw = fs::read_to_string(paths.asset("prefabs.json"))
+            .expect("should be able to read prefabs JSON");
+        Prefabs(serde_json::from_str(&raw).expect("prefabs JSON should be serializable JSON"))
     }
 }
 

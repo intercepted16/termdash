@@ -7,6 +7,7 @@ use crate::gameplay::death::{DeathPause, KillPlayer, begin_death_pause, tick_dea
 use crate::gameplay::triggers::{TriggerState, apply_player_triggers};
 use crate::level::load::CurrentLevel;
 use crate::level::model::LevelEntity;
+use crate::paths::GamePaths;
 use crate::player::move_player;
 use bevy::prelude::*;
 
@@ -15,10 +16,16 @@ pub struct GameplayPlugin;
 impl Plugin for GameplayPlugin {
     fn build(&self, app: &mut App) {
         // TODO: use preexisting config resource
-        app.insert_resource(DeathPause::new(Config::load().player.death_pause_seconds))
-            .init_resource::<TriggerState>()
-            .add_message::<KillPlayer>()
-            .add_systems(OnEnter(AppState::MainMenu), cleanup_gameplay);
+        let paths = GamePaths::init().expect("paths should load");
+        app.insert_resource(DeathPause::new(
+            Config::load(&paths)
+                .expect("config should load")
+                .player
+                .death_pause_seconds,
+        ))
+        .init_resource::<TriggerState>()
+        .add_message::<KillPlayer>()
+        .add_systems(OnEnter(AppState::MainMenu), cleanup_gameplay);
         app.add_systems(
             Update,
             (apply_player_triggers, begin_death_pause)

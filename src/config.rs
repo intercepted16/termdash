@@ -1,5 +1,9 @@
+use std::fs;
+
 use bevy::prelude::Resource;
 use serde::Deserialize;
+
+use crate::paths::GamePaths;
 
 #[derive(Debug, Deserialize, Resource)]
 pub struct Config {
@@ -10,8 +14,9 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn load() -> Self {
-        toml::from_str(include_str!("../assets/config.toml")).expect("failed to parse config")
+    pub fn load(paths: &GamePaths) -> Result<Self, Box<dyn std::error::Error>> {
+        let contents = fs::read_to_string(&paths.config("config.toml"))?;
+        Ok(toml::from_str(&contents)?)
     }
 }
 
@@ -19,7 +24,7 @@ impl Config {
 pub struct GameConfig {
     pub fps: f64,
     pub logfile: String, // relative to working dir
-    pub graphics: bool
+    pub graphics: bool,
 }
 
 #[derive(Debug, Deserialize)]

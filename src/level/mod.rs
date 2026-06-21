@@ -8,16 +8,21 @@ use crate::level::load::{CurrentLevel, LoadWorldEvent, animate_objects, load_lev
 use crate::level::model::Prefabs;
 use crate::level::registry::Levels;
 use crate::level::visualizer::update_audio_visualizer;
+use crate::paths::GamePaths;
 use crate::player::move_player;
 use bevy::prelude::*;
 pub struct LevelPlugin;
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
+        let prefabs = {
+            let paths = app.world().resource::<GamePaths>();
+            Prefabs::load(paths)
+        };
         app.init_resource::<CurrentLevel>()
             .insert_resource(
                 Levels::load().unwrap_or_else(|err| panic!("failed to load worlds: {}", err)),
             )
-            .insert_resource(Prefabs::load())
+            .insert_resource(prefabs)
             .add_message::<LoadWorldEvent>()
             .add_systems(
                 Update,

@@ -4,6 +4,7 @@ mod editor;
 mod gameplay;
 mod input;
 mod level;
+mod paths;
 mod player;
 mod state;
 mod ui;
@@ -22,7 +23,7 @@ use std::sync::OnceLock;
 use std::time::Duration;
 use tracing_appender::non_blocking;
 use tracing_appender::non_blocking::WorkerGuard;
-use tracing_subscriber::{fmt, EnvFilter};
+use tracing_subscriber::{EnvFilter, fmt};
 
 use crate::config::Config;
 use crate::core::camera::CameraPlugin;
@@ -30,6 +31,7 @@ use crate::editor::EditorPlugin;
 use crate::gameplay::GameplayPlugin;
 use crate::input::InputPlugin;
 use crate::level::LevelPlugin;
+use crate::paths::GamePaths;
 use crate::player::PlayerPlugin;
 use crate::state::{AppState, AppStatePlugin, EditorAvailability};
 use crate::ui::UiPlugin;
@@ -54,7 +56,8 @@ fn setup_logging(path: String) {
 }
 
 fn main() {
-    let config = Config::load();
+    let paths = GamePaths::init().expect("paths should be returned");
+    let config = Config::load(&paths).expect("config should load");
 
     setup_logging(config.game.logfile.clone());
 
@@ -90,6 +93,8 @@ fn main() {
                 .disable::<bevy::log::LogPlugin>(),
         ));
     }
+
+    app.insert_resource(paths);
 
     app.add_plugins((
         RatatuiPlugins::default(),

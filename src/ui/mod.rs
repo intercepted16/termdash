@@ -25,7 +25,7 @@ use crate::{
 const BASE: Style = Style::new().fg(White);
 pub(crate) const HI: Style = Style::new().fg(Cyan).add_modifier(Modifier::BOLD);
 const BORDER: Style = Style::new().fg(Green);
-type WorldUiResources<'w> = Res<'w, Levels>;
+
 type OverlayResources<'w> = Option<Res<'w, DeathPause>>;
 
 const BANNER: &str = r#" _____                     ____            _
@@ -39,11 +39,10 @@ pub fn render(
     state: Res<State<AppState>>,
     editor: Res<EditorAvailability>,
     menu: Option<Res<MenuState>>,
-    world_resources: WorldUiResources,
+    levels: Res<Levels>,
     overlays: OverlayResources,
     mut camera: Query<(&mut RatatuiCameraWidget, &mut RatatuiCamera)>,
 ) {
-    let worlds = world_resources;
     let pause = overlays;
 
     let _ = tui.draw(|f| {
@@ -64,18 +63,6 @@ pub fn render(
         match state.get() {
             AppState::MainMenu => {
                 let menu = menu.unwrap();
-                let levels = worlds;
-                if levels.is_empty() {
-                    let area = center(60, 8, f.area());
-                    f.render_widget(
-                        Paragraph::new("No levels found in assets/worlds")
-                            .alignment(Center)
-                            .style(HI)
-                            .block(block(" Worlds ")),
-                        area,
-                    );
-                    return;
-                }
 
                 let area = f.area();
                 let center_area = center(76, area.height.saturating_sub(2), area);
