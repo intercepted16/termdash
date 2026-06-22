@@ -52,6 +52,8 @@ Builds are compiled automatically using the [release workflow](.github/workflows
 * macOS aarch64 for Apple Silicon Macs
 * Windows x86_64 for Windows 10/11
 
+Releases are [here](https://github.com/intercepted16/termdash/releases).
+
 **Note**: Only tested on Linux, I do not have a Mac or Windows.
 
 You can also clone the repository:
@@ -63,6 +65,9 @@ cargo run
 ```
 
 Cargo will handle everything for you.
+
+# AI usage
+Codex to collate documentation, debug errors, refactor, sometimes add features, create content in JSON. Google AI that pops up when I search things. And ChatGPT for similar reasons to Codex, but it can't edit my codebase.
 
 # Credits
 
