@@ -30,10 +30,12 @@ I started making this for Hack Club Horizons.
 # Features
 
 * Geometry Dash-style gameplay in the terminal
-* Built with Rust and Bevy
+* Braille rendering (looks cool)
 * Graphical level editor
 * Live editing and testing
-* Audio visualiser* (it's fake, but you won't tell!)
+* Two really basic prebuilt levels for now
+* Some built-in prefabs; you can also compose your own.
+* Audio visualiser (it's fake, but you won't tell!)
 
 # Controls
 
@@ -43,7 +45,7 @@ I started making this for Hack Club Horizons.
 
 # Usage
 
-Builds are compiled using the [release workflow](.github/workflows/release.yml), for the below:
+Builds are compiled automatically using the [release workflow](.github/workflows/release.yml), for the below:
 
 * Linux x86_64, built on Ubuntu 20.04 for a glibc 2.31 baseline
 * macOS x86_64 for Intel Macs
