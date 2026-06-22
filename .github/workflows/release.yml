@@ -2,6 +2,8 @@ name: Build binaries
 
 on:
   push:
+    branches:
+      - "main"
     tags:
       - "v*"
 
@@ -77,6 +79,10 @@ jobs:
 
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: release-linux-x86_64-glibc2.31
+          cache-targets: true
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Build
         run: cargo build --release --locked --target x86_64-unknown-linux-gnu
@@ -159,6 +165,10 @@ jobs:
       - name: Cache cargo
         if: ${{ matrix.enabled }}
         uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: release-${{ matrix.target }}
+          cache-targets: true
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Build
         if: ${{ matrix.enabled }}
