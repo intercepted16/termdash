@@ -43,12 +43,14 @@ I started making this for Hack Club Horizons.
 
 # Usage
 
-Precompiled builds are there for:
+Builds are compiled using the [release workflow](.github/workflows/release.yml), for the below:
 
 * Linux x86_64, built on Ubuntu 20.04 for a glibc 2.31 baseline
 * macOS x86_64 for Intel Macs
 * macOS aarch64 for Apple Silicon Macs
 * Windows x86_64 for Windows 10/11
+
+**Note**: Only tested on Linux, I do not have a Mac or Windows.
 
 You can also clone the repository:
 
