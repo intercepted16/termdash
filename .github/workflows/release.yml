@@ -42,6 +42,7 @@ jobs:
             ca-certificates \
             curl \
             git \
+            git-lfs \
             pkg-config \
             libx11-dev \
             libasound2-dev \
@@ -54,6 +55,20 @@ jobs:
             mesa-vulkan-drivers
 
       - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Validate LFS assets
+        shell: bash
+        run: |
+          failed=0
+          while IFS= read -r path; do
+            if grep -q "git-lfs.github.com/spec" "$path"; then
+              echo "$path is still a Git LFS pointer"
+              failed=1
+            fi
+          done < <(git lfs ls-files --name-only)
+          exit "$failed"
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -119,6 +134,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         if: ${{ matrix.enabled }}
+        with:
+          lfs: true
+
+      - name: Validate LFS assets
+        if: ${{ matrix.enabled }}
+        shell: bash
+        run: |
+          failed=0
+          while IFS= read -r path; do
+            if grep -q "git-lfs.github.com/spec" "$path"; then
+              echo "$path is still a Git LFS pointer"
+              failed=1
+            fi
+          done < <(git lfs ls-files --name-only)
+          exit "$failed"
 
       - name: Install Rust
         if: ${{ matrix.enabled }}
