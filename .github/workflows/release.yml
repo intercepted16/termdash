@@ -24,42 +24,24 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    name: Build ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
+  build-linux:
+    name: Build linux-x86_64-glibc2.31
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.linux }}
+    runs-on: ubuntu-22.04
+    container: ubuntu:20.04
 
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: linux
-            os: ubuntu-latest
-            artifact: termdash-linux
-            binary: termdash
-            enabled: ${{ github.event_name != 'workflow_dispatch' || inputs.linux }}
-
-          - name: macos
-            os: macos-latest
-            artifact: termdash-macos
-            binary: termdash
-            enabled: ${{ github.event_name != 'workflow_dispatch' || inputs.macos }}
-
-          - name: windows
-            os: windows-latest
-            artifact: termdash-windows.exe
-            binary: termdash.exe
-            enabled: ${{ github.event_name != 'workflow_dispatch' || inputs.windows }}
+    env:
+      DEBIAN_FRONTEND: noninteractive
 
     steps:
-      - uses: actions/checkout@v4
-        if: ${{ matrix.enabled }}
-
       - name: Install Linux dependencies
-        if: ${{ matrix.enabled && runner.os == 'Linux' }}
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            g++ \
+          apt-get update
+          apt-get install -y \
+            build-essential \
+            ca-certificates \
+            curl \
+            git \
             pkg-config \
             libx11-dev \
             libasound2-dev \
@@ -71,9 +53,78 @@ jobs:
             libgl1-mesa-dev \
             mesa-vulkan-drivers
 
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-gnu
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build
+        run: cargo build --release --locked --target x86_64-unknown-linux-gnu
+
+      - name: Prepare binary
+        shell: bash
+        run: |
+          mkdir -p dist
+          cp target/x86_64-unknown-linux-gnu/release/termdash dist/termdash-linux-x86_64-glibc2.31
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: termdash-linux-x86_64-glibc2.31
+          path: dist/termdash-linux-x86_64-glibc2.31
+
+      - name: Upload to GitHub Release
+        if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') }}
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/termdash-linux-x86_64-glibc2.31
+
+  build-native:
+    name: Build ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macos-x86_64
+            platform: macos
+            os: macos-15-intel
+            target: x86_64-apple-darwin
+            artifact: termdash-macos-x86_64
+            binary: termdash
+            enabled: ${{ github.event_name != 'workflow_dispatch' || inputs.macos }}
+
+          - name: macos-aarch64
+            platform: macos
+            os: macos-14
+            target: aarch64-apple-darwin
+            artifact: termdash-macos-aarch64
+            binary: termdash
+            enabled: ${{ github.event_name != 'workflow_dispatch' || inputs.macos }}
+
+          - name: windows-x86_64
+            platform: windows
+            os: windows-2022
+            target: x86_64-pc-windows-msvc
+            artifact: termdash-windows-x86_64.exe
+            binary: termdash.exe
+            enabled: ${{ github.event_name != 'workflow_dispatch' || inputs.windows }}
+
+    steps:
+      - uses: actions/checkout@v4
+        if: ${{ matrix.enabled }}
+
       - name: Install Rust
         if: ${{ matrix.enabled }}
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
 
       - name: Cache cargo
         if: ${{ matrix.enabled }}
@@ -81,14 +132,14 @@ jobs:
 
       - name: Build
         if: ${{ matrix.enabled }}
-        run: cargo build --release --locked
+        run: cargo build --release --locked --target ${{ matrix.target }}
 
       - name: Prepare binary
         if: ${{ matrix.enabled }}
         shell: bash
         run: |
           mkdir -p dist
-          cp "target/release/${{ matrix.binary }}" "dist/${{ matrix.artifact }}"
+          cp "target/${{ matrix.target }}/release/${{ matrix.binary }}" "dist/${{ matrix.artifact }}"
 
       - name: Upload artifact
         if: ${{ matrix.enabled }}

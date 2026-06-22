@@ -10,7 +10,14 @@ Made for Hack Club Horizons!
 **Work in progress**
 
 # Usage
-As of now, there are no precompiled builds. You can clone the repository:
+Precompiled builds are produced for:
+
+- Linux x86_64, built on Ubuntu 20.04 for a glibc 2.31 baseline
+- macOS x86_64 for Intel Macs
+- macOS aarch64 for Apple Silicon Macs
+- Windows x86_64 for Windows 10/11
+
+You can also clone the repository:
 
 ```bash
 git clone https://github.com/intercepted16/termdash
@@ -22,7 +29,7 @@ and then use:
 cargo run
 ```
 
-to run it, which will handle everything for you; though note that it hasn't been tested on non-Linux systems, however, Bevy (and obviously Rust) are cross-platform.
+to run it locally, which will handle everything for you.
 
 
 # Credits
