@@ -60,7 +60,7 @@ cd termdash
 cargo run
 ```
 
-which will handle everything for you.
+Cargo will handle everything for you.
 
 # Credits
 
