@@ -51,7 +51,8 @@ fn setup_logging(path: &Path) {
     let (writer, guard) = non_blocking(
         fs::OpenOptions::new()
             .create(true)
-            .append(true)
+            .write(true)
+            .truncate(true)
             .open(path)
             .unwrap_or_else(|err| panic!("failed to open log file {}: {err}", path.display())),
     );
