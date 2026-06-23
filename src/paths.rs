@@ -1,4 +1,5 @@
 use bevy::ecs::resource::Resource;
+use bevy::prelude::info;
 use directories::ProjectDirs;
 use include_dir::{Dir, include_dir};
 use std::{
@@ -15,11 +16,16 @@ pub struct GamePaths {
 }
 
 impl GamePaths {
-    /// Initialize the game configuration and assets (including levels),
-    /// returning their paths,
-    /// copying the embedded defaults if not
-    /// already there.
+    /// Initializes game paths and extracts embedded assets in release builds.
     pub fn init() -> Result<Self, Box<dyn std::error::Error>> {
+        if cfg!(debug_assertions) {
+            let assets_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("assets");
+            info!("using assets dir: {} in debug mode", assets_dir.display());
+            return Ok(Self {
+                data_dir: assets_dir.clone(),
+                config_dir: assets_dir.clone().join("config"),
+            });
+        }
         let dirs = ProjectDirs::from("com", "termdash", "termdash")
             .ok_or("could not find project dirs")?;
 
