@@ -120,9 +120,9 @@ pub fn move_player(
     let (config, time, input_state, current_level) = resources;
     let (solids, side_kill_solids, player) = queries;
     let dt = time.delta_secs();
-    let world = current_level.level.as_ref().unwrap();
+    let level = current_level.level.as_ref().unwrap();
 
-    let forward_speed = world.scroll_speed_px * config.camera.zoom;
+    let forward_speed = level.scroll_speed_px * config.camera.zoom;
 
     let gravity = config.player.gravity_px * config.camera.zoom;
     let jump_speed = config.player.jump_speed_px * config.camera.zoom;
@@ -211,7 +211,7 @@ pub fn move_player(
         transform.rotate_z(AIR_SPIN_RADIANS_PER_SECOND * -gravity_dir.y * dt);
     }
 
-    if fell_out_of_world(&transform, world) {
+    if fell_out_of_world(&transform, level) {
         deaths.write(KillPlayer);
     }
 }

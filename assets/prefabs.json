@@ -128,5 +128,57 @@
 				"type": "kill_player"
 			}
 		}
+	},
+	"speed_portal": {
+		"visual": {
+			"type": "sprite",
+			"path": "sprites/speed_portal.png",
+			"animations": [
+				{
+					"type": "spin",
+					"degrees_per_second": 90.0
+				}
+			]
+		},
+		"behavior": {
+			"type": "trigger",
+			"activation": "touch",
+			"effect": {
+				"type": "multiply_scroll_speed",
+				"multiplier": 2.0
+			}
+		},
+		"collider": {
+			"Rectangle": {
+				"x_length": 40.0,
+				"y_length": 64.0
+			}
+		}
+	},
+	"slow_speed_portal": {
+		"visual": {
+			"type": "sprite",
+			"path": "sprites/slow_speed_portal.png",
+			"animations": [
+				{
+					"type": "spin",
+					"degrees_per_second": 45.0
+				}
+			]
+		},
+		"behavior": {
+			"type": "trigger",
+			"activation": "touch",
+			"effect": {
+				"type": "multiply_scroll_speed",
+				"multiplier": 0.5
+			}
+		},
+		"collider": {
+			"Rectangle": {
+				"x_length": 40.0,
+				"y_length": 64.0
+			}
+		}
 	}
 }

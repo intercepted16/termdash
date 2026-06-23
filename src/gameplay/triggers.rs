@@ -1,6 +1,7 @@
 use crate::config::Config;
 use crate::gameplay::death::KillPlayer;
 use crate::input::InputState;
+use crate::level::load::CurrentLevel;
 use crate::player::components::Player;
 use crate::player::queries::PlayerQuery;
 use avian2d::collision::collider::contact_query;
@@ -31,6 +32,7 @@ pub enum TriggerEffect {
     SetMinVerticalSpeedPx { speed_px: f32 },
     KillPlayer,
     FlipGravity,
+    MultiplyScrollSpeed { multiplier: f32 },
 }
 
 type PlayerTriggers<'w, 's> = Query<
@@ -84,6 +86,7 @@ pub fn apply_player_triggers(
     mut state: ResMut<TriggerState>,
     mut spatial_query: SpatialQuery,
     (player, triggers): (PlayerQuery, PlayerTriggers),
+    mut current_level: ResMut<CurrentLevel>,
     config: Res<Config>,
 ) {
     let jump_pressed = input.just_pressed(TerminalKeyCode::Up);
@@ -129,7 +132,11 @@ pub fn apply_player_triggers(
             continue;
         }
 
+        // Only run on first collision on an entity, otherwise... well.. its buggy asf
         let just_entered = state.0.insert(entity);
+        if !just_entered {
+            continue;
+        }
 
         match trigger.effect {
             TriggerEffect::SetMinVerticalSpeedPx { speed_px } => {
@@ -142,9 +149,10 @@ pub fn apply_player_triggers(
                 deaths.write(KillPlayer);
             }
             TriggerEffect::FlipGravity => {
-                if just_entered {
-                    player.gravity_dir = -player.gravity_dir;
-                }
+                player.gravity_dir = -player.gravity_dir;
+            }
+            TriggerEffect::MultiplyScrollSpeed { multiplier } => {
+                current_level.level.as_mut().unwrap().scroll_speed_px *= multiplier;
             }
         }
     }
