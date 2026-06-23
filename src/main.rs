@@ -60,7 +60,7 @@ fn setup_logging(path: &Path) {
 
     fmt()
         .with_writer(writer)
-        .with_env_filter(EnvFilter::from_default_env().add_directive("info".parse().unwrap()))
+        .with_env_filter(EnvFilter::new("warn,termdash=debug"))
         .init();
 }
 
