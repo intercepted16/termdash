@@ -36,7 +36,7 @@ use crate::input::InputPlugin;
 use crate::level::LevelPlugin;
 use crate::paths::GamePaths;
 use crate::player::PlayerPlugin;
-use crate::state::{AppState, AppStatePlugin, EditorAvailability};
+use crate::state::{AppState, AppStatePlugin, RuntimeFeatures};
 use crate::ui::UiPlugin;
 
 static LOG_GUARD: OnceLock<WorkerGuard> = OnceLock::new();
@@ -72,12 +72,13 @@ fn main() {
     setup_logging(&paths.data_file(&config.game.logfile));
 
     let frame_wait = Duration::from_secs_f64(1.0 / config.game.fps.max(1.0));
-    let graphics_enabled = config.game.graphics;
+    let graphics = config.game.graphics;
+    warn!("not running in a graphical environment, editor will be disabled");
     let asset_file_path = paths.data_dir.to_string_lossy().into_owned();
 
     let mut app = App::new();
 
-    if graphics_enabled {
+    if graphics {
         app.add_plugins((
             DefaultPlugins
                 .build()
@@ -128,9 +129,7 @@ fn main() {
         AppStatePlugin,
     ))
     .insert_resource(Gravity::ZERO)
-    .insert_resource(EditorAvailability {
-        graphical: graphics_enabled,
-    })
+    .insert_resource(RuntimeFeatures { graphics })
     .insert_resource(config)
     .init_state::<AppState>()
     .run();

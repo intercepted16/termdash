@@ -18,7 +18,7 @@ use ratatui::{
 use tui_big_text::{BigText, PixelSize};
 
 use crate::{
-    AppState, gameplay::death::DeathPause, level::registry::Levels, state::EditorAvailability,
+    AppState, gameplay::death::DeathPause, level::registry::Levels, state::RuntimeFeatures,
     ui::model::MenuState,
 };
 
@@ -37,7 +37,7 @@ const BANNER: &str = r#" _____                     ____            _
 pub fn render(
     mut tui: ResMut<RatatuiContext>,
     state: Res<State<AppState>>,
-    editor: Res<EditorAvailability>,
+    editor: Res<RuntimeFeatures>,
     menu: Option<Res<MenuState>>,
     levels: Res<Levels>,
     overlays: OverlayResources,
@@ -129,7 +129,7 @@ pub fn render(
                     Line::styled("Esc: resume", BASE),
                     Line::styled("Enter: main menu", BASE),
                 ];
-                if editor.graphical {
+                if editor.graphics {
                     lines.insert(3, Line::styled("E: editor", BASE));
                 }
 

@@ -14,8 +14,8 @@ pub enum AppState {
 }
 
 #[derive(Resource, Default)]
-pub struct EditorAvailability {
-    pub graphical: bool,
+pub struct RuntimeFeatures {
+    pub graphics: bool,
 }
 
 pub struct AppStatePlugin;
@@ -28,7 +28,7 @@ impl Plugin for AppStatePlugin {
 
 fn app_state_input(
     input: Res<InputState>,
-    editor: Res<EditorAvailability>,
+    editor: Res<RuntimeFeatures>,
     state: Res<State<AppState>>,
     mut next: ResMut<NextState<AppState>>,
 ) {
@@ -38,7 +38,7 @@ fn app_state_input(
                 next.set(AppState::Paused);
             }
 
-            if input.just_pressed(TerminalKeyCode::Char('e')) && editor.graphical {
+            if input.just_pressed(TerminalKeyCode::Char('e')) && editor.graphics {
                 next.set(AppState::Editing);
             }
         }
@@ -52,7 +52,7 @@ fn app_state_input(
                 next.set(AppState::MainMenu);
             }
 
-            if input.just_pressed(TerminalKeyCode::Char('e')) && editor.graphical {
+            if input.just_pressed(TerminalKeyCode::Char('e')) && editor.graphics {
                 next.set(AppState::Editing);
             }
         }
