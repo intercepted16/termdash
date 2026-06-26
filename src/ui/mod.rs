@@ -88,7 +88,7 @@ pub fn render(
                             .iter()
                             .map(|w| ListItem::new(Line::styled(format!("  {}", w.name), BASE))),
                     )
-                    .block(block(" Worlds "))
+                    .block(block(" Levels "))
                     .highlight_style(HI)
                     .highlight_symbol("> "),
                     list,
@@ -100,15 +100,19 @@ pub fn render(
                 );
 
                 f.render_widget(
-                    Paragraph::new(levels[menu.0].description.clone())
-                        .wrap(Wrap { trim: true })
-                        .style(BASE)
-                        .block(block(" Details ")),
+                    Paragraph::new(
+                        levels
+                            .get(menu.0)
+                            .map_or("No levels found.", |level| level.description.as_str()),
+                    )
+                    .wrap(Wrap { trim: true })
+                    .style(BASE)
+                    .block(block(" Details ")),
                     details,
                 );
 
                 f.render_widget(
-                    Paragraph::new("Up/Down select  |  Enter play  |  Esc menu during run")
+                    Paragraph::new("Up/Down select  |  Enter play  |  + create  |  - delete")
                         .alignment(Center)
                         .style(Style::new().fg(DarkGray).add_modifier(Modifier::DIM)),
                     help,

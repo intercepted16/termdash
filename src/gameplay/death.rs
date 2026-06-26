@@ -33,7 +33,8 @@ fn completion_percent(player_x: f32, level: &Level) -> u8 {
         .round() as u8
 }
 
-pub fn begin_death_pause(
+pub fn begin(
+    levels: Res<crate::level::registry::Levels>,
     resources: (Res<Config>, Res<CurrentLevel>),
     mut commands: Commands,
     mut next_state: ResMut<NextState<AppState>>,
@@ -48,7 +49,7 @@ pub fn begin_death_pause(
 
     let (config, current_level) = resources;
 
-    let Some(level) = current_level.level.as_ref() else {
+    let Some(level) = current_level.get_from(&levels) else {
         return;
     };
 
@@ -67,7 +68,7 @@ pub fn begin_death_pause(
     next_state.set(AppState::Dead);
 }
 
-pub fn tick_death_pause(
+pub fn tick(
     time: Res<Time>,
     current_level: Res<CurrentLevel>,
     mut next_state: ResMut<NextState<AppState>>,
@@ -85,7 +86,7 @@ pub fn tick_death_pause(
         return;
     }
 
-    let Some(index) = current_level.index else {
+    let Some(index) = current_level.0 else {
         return;
     };
 

@@ -1,6 +1,7 @@
 use crate::AppState;
 use crate::config::Config;
 use crate::level::load::CurrentLevel;
+use crate::level::registry::Levels;
 use crate::player::components::Player;
 use bevy::prelude::*;
 use bevy_ratatui_camera::{RatatuiCamera, RatatuiCameraWidget};
@@ -37,13 +38,14 @@ pub fn follow_player(
     config: Res<Config>,
     player: Single<&Transform, With<Player>>,
     current_level: Res<CurrentLevel>,
+    levels: Res<Levels>,
     camera: CameraQuery,
 ) {
     let (mut camera_transform, projection, ratatui_camera) = camera.into_inner();
     let scale = projection_scale_or(projection, config.camera.zoom);
     let world_height = ratatui_camera.dimensions.y as f32 * scale;
     let ground_bottom = current_level
-        .level
+        .get_from(&levels)
         .as_ref()
         .map(|level| level.ground.y - level.ground.height * 0.5)
         .unwrap();

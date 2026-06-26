@@ -1,6 +1,6 @@
 use crate::AppState;
 use crate::input::InputState;
-use crate::level::load::LoadWorldEvent;
+use crate::level::load::{CurrentLevel, LoadWorldEvent};
 use crate::level::model::LevelMusic;
 use crate::level::registry::Levels;
 use crate::ui::model::MenuState;
@@ -29,7 +29,8 @@ impl Plugin for UiPlugin {
 fn main_menu_input(
     input: Res<InputState>,
     mut menu: ResMut<MenuState>,
-    level_registry: Res<Levels>,
+    mut levels: ResMut<Levels>,
+    mut current_level: ResMut<CurrentLevel>,
     mut load_world_events: MessageWriter<LoadWorldEvent>,
     mut next_state: ResMut<NextState<AppState>>,
 ) {
@@ -38,10 +39,26 @@ fn main_menu_input(
     }
 
     if input.just_pressed(TerminalKeyCode::Down) {
-        menu.next(level_registry.len());
+        menu.next(levels.len());
     }
 
-    if input.just_pressed(TerminalKeyCode::Enter) {
+    if input.just_pressed(TerminalKeyCode::Char('+'))
+        && let Ok(index) = levels.save_new()
+    {
+        menu.0 = index;
+        current_level.0 = Some(index);
+        load_world_events.write(LoadWorldEvent { index });
+        next_state.set(AppState::Editing);
+    }
+
+    if input.just_pressed(TerminalKeyCode::Char('-'))
+        && !levels.is_empty()
+        && levels.remove(menu.0).is_ok()
+    {
+        menu.0 = menu.0.min(levels.len().saturating_sub(1));
+    }
+
+    if input.just_pressed(TerminalKeyCode::Enter) && !levels.is_empty() {
         load_world_events.write(LoadWorldEvent { index: menu.0 });
 
         next_state.set(AppState::Playing);

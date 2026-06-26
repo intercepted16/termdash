@@ -81,12 +81,13 @@ fn touch_on_side(
 }
 
 pub fn apply_player_triggers(
+    mut levels: ResMut<crate::level::registry::Levels>,
     mut deaths: MessageWriter<KillPlayer>,
     input: Res<InputState>,
     mut state: ResMut<TriggerState>,
     mut spatial_query: SpatialQuery,
     (player, triggers): (PlayerQuery, PlayerTriggers),
-    mut current_level: ResMut<CurrentLevel>,
+    current_level: Res<CurrentLevel>,
     config: Res<Config>,
 ) {
     let jump_pressed = input.just_pressed(TerminalKeyCode::Up);
@@ -152,7 +153,9 @@ pub fn apply_player_triggers(
                 player.gravity_dir = -player.gravity_dir;
             }
             TriggerEffect::MultiplyScrollSpeed { multiplier } => {
-                current_level.level.as_mut().unwrap().scroll_speed_px *= multiplier;
+                if let Some(level) = current_level.get_from_mut(&mut levels) {
+                    level.scroll_speed_px *= multiplier;
+                }
             }
         }
     }

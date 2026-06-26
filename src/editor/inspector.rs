@@ -1,7 +1,6 @@
 use super::{
     model::{EditorCamera, EditorState},
     refresh::RefreshLevelEvent,
-    save::save_current_level,
     selection::{clamp_selection, push_default_object, select_nearest},
 };
 use crate::{
@@ -12,10 +11,11 @@ use crate::{
 use bevy::{ecs::reflect::AppTypeRegistry, ecs::system::SystemParam, prelude::*};
 use bevy_egui::{EguiContext, egui};
 use bevy_inspector_egui::reflect_inspector;
+use std::{ops::DerefMut, path::PathBuf};
 
 pub fn show_editor(
     mut egui_context: Single<&mut EguiContext, With<EditorCamera>>,
-    mut editor_ui: EditorUiParams,
+    mut params: EditorUiParams,
 ) {
     let ctx = egui_context.get_mut();
     let save_requested = ctx.input_mut(|input| {
@@ -25,7 +25,7 @@ pub fn show_editor(
         ))
     });
 
-    if editor_ui.current_level.level.is_none() {
+    if params.current_level.0.is_none() {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("No Level Loaded");
             ui.label("Enter a level before opening the editor.");
@@ -38,13 +38,12 @@ pub fn show_editor(
     let mut changed = false;
 
     {
-        let level = editor_ui
+        let level = params
             .current_level
-            .level
-            .as_mut()
+            .get_from_mut(params.levels.deref_mut())
             .expect("level checked above");
 
-        clamp_selection(&mut editor_ui.editor, level);
+        clamp_selection(&mut params.editor, level);
 
         egui::TopBottomPanel::top("editor_toolbar").show(ctx, |ui| {
             ui.horizontal(|ui| {
@@ -56,8 +55,8 @@ pub fn show_editor(
                     close_clicked = true;
                 }
 
-                let marker = if editor_ui.editor.dirty { "*" } else { "" };
-                ui.label(format!("{marker}{}", editor_ui.editor.status));
+                let marker = if params.editor.dirty { "*" } else { "" };
+                ui.label(format!("{marker}{}", params.editor.status));
             });
         });
 
@@ -68,27 +67,27 @@ pub fn show_editor(
                 ui.heading("Objects");
 
                 if ui.button("Select nearest to player").clicked()
-                    && let Ok(transform) = editor_ui.player.single()
+                    && let Ok(transform) = params.player.single()
                 {
-                    select_nearest(&mut editor_ui.editor, level, transform.translation.xy());
+                    select_nearest(&mut params.editor, level, transform.translation.xy());
                 }
 
                 if ui.button("Add object at player").clicked() {
-                    let position = editor_ui
+                    let position = params
                         .player
                         .single()
                         .map(|transform| transform.translation.xy())
                         .unwrap_or(level.player.spawn);
-                    editor_ui.editor.selected_object = Some(push_default_object(level, position));
+                    params.editor.selected_object = Some(push_default_object(level, position));
                     changed = true;
                 }
 
                 if ui.button("Delete selected").clicked()
-                    && let Some(index) = editor_ui.editor.selected_object
+                    && let Some(index) = params.editor.selected_object
                     && index < level.objects.len()
                 {
                     level.objects.remove(index);
-                    editor_ui.editor.selected_object = None;
+                    params.editor.selected_object = None;
                     changed = true;
                 }
 
@@ -97,14 +96,14 @@ pub fn show_editor(
                 egui::ScrollArea::vertical().show(ui, |ui| {
                     for (index, object) in level.objects.iter().enumerate() {
                         let prefab = object.prefab.as_deref().unwrap_or("custom");
-                        let selected = editor_ui.editor.selected_object == Some(index);
+                        let selected = params.editor.selected_object == Some(index);
                         let label = format!(
                             "#{index} {prefab} ({:.0}, {:.0})",
                             object.position.x, object.position.y
                         );
 
                         if ui.selectable_label(selected, label).clicked() {
-                            editor_ui.editor.selected_object = Some(index);
+                            params.editor.selected_object = Some(index);
                         }
                     }
                 });
@@ -116,7 +115,7 @@ pub fn show_editor(
             .show(ctx, |ui| {
                 ui.heading("Object Inspector");
 
-                let Some(index) = editor_ui.editor.selected_object else {
+                let Some(index) = params.editor.selected_object else {
                     ui.label("No object selected.");
                     return;
                 };
@@ -126,36 +125,36 @@ pub fn show_editor(
                     return;
                 };
 
-                let registry = editor_ui.type_registry.read();
+                let registry = params.type_registry.read();
                 changed |= reflect_inspector::ui_for_value(object, ui, &registry);
             });
 
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Level Data");
             egui::ScrollArea::both().show(ui, |ui| {
-                let registry = editor_ui.type_registry.read();
+                let registry = params.type_registry.read();
                 changed |= reflect_inspector::ui_for_value(level, ui, &registry);
             });
         });
 
         if changed {
-            clamp_selection(&mut editor_ui.editor, level);
-            editor_ui.editor.dirty = true;
-            editor_ui.editor.status = "edited level data".to_string();
-            editor_ui.refresh_events.write(RefreshLevelEvent);
+            clamp_selection(&mut params.editor, level);
+            params.editor.dirty = true;
+            params.editor.status = "edited level data".to_string();
+            params.refresh_events.write(RefreshLevelEvent);
         }
     }
 
     if save_clicked {
         save(
-            &mut editor_ui.editor,
-            &editor_ui.current_level,
-            &mut editor_ui.levels,
+            &mut params.editor,
+            &params.current_level,
+            &mut params.levels,
         );
     }
 
     if close_clicked {
-        editor_ui.next_state.set(AppState::Playing);
+        params.next_state.set(AppState::Playing);
     }
 }
 
@@ -171,7 +170,14 @@ pub struct EditorUiParams<'w, 's> {
 }
 
 fn save(editor: &mut EditorState, current_level: &CurrentLevel, levels: &mut Levels) {
-    match save_current_level(current_level, levels) {
+    let path: Result<PathBuf, String> = (|| {
+        let index = current_level.0.ok_or("no level is loaded")?;
+        let level = current_level.get_from(levels).ok_or("no current level")?;
+
+        levels.save(level.clone(), index)
+    })();
+
+    match path {
         Ok(path) => {
             editor.dirty = false;
             editor.status = format!("saved {}", path.display());

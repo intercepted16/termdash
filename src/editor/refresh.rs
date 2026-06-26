@@ -15,7 +15,7 @@ use bevy::{ecs::system::SystemParam, prelude::*};
 pub struct RefreshLevelEvent;
 
 pub fn refresh_level(
-    resources: (Res<Config>, Res<AssetServer>, Res<Prefabs>),
+    resources: (Res<Config>, Res<AssetServer>, Res<Prefabs>, Res<Levels>),
     render_assets: (ResMut<Assets<Mesh>>, ResMut<Assets<ColorMaterial>>),
     mut commands: Commands,
     mut events: MessageReader<RefreshLevelEvent>,
@@ -25,9 +25,9 @@ pub fn refresh_level(
         return;
     }
 
-    let (config, asset_server, prefabs) = resources;
+    let (config, asset_server, prefabs, levels) = resources;
     let (mut meshes, mut materials) = render_assets;
-    let Some(level) = world.current_level.level.as_ref() else {
+    let Some(level) = world.current_level.get_from(&levels) else {
         return;
     };
 
@@ -53,18 +53,11 @@ pub fn refresh_level(
     }
 
     spawn_music(&mut commands, &config, &asset_server, level);
-    refresh_player_authoring(&mut commands, level, &mut world.player);
-
-    if let Some(index) = world.current_level.index
-        && let Some(slot) = world.levels.get_mut(index)
-    {
-        *slot = level.clone();
-    }
+    refresh_player(&mut commands, level, &mut world.player);
 }
 
 #[derive(SystemParam)]
 pub struct RefreshWorld<'w, 's> {
-    levels: ResMut<'w, Levels>,
     current_level: Res<'w, CurrentLevel>,
     authored_entities: AuthoredEntities<'w, 's>,
     player: Query<'w, 's, (Entity, &'static mut Sprite), With<Player>>,
@@ -74,7 +67,7 @@ pub struct RefreshWorld<'w, 's> {
 type AuthoredEntities<'w, 's> =
     Query<'w, 's, Entity, (With<LevelEntity>, Without<Player>, Without<LevelMusic>)>;
 
-fn refresh_player_authoring(
+fn refresh_player(
     commands: &mut Commands,
     level: &crate::level::model::Level,
     player: &mut Query<(Entity, &mut Sprite), With<Player>>,

@@ -112,6 +112,7 @@ fn fell_out_of_world(transform: &Transform, world: &Level) -> bool {
 }
 
 pub fn move_player(
+    levels: Res<crate::level::registry::Levels>,
     resources: (Res<Config>, Res<Time>, Res<InputState>, Res<CurrentLevel>),
     mut deaths: MessageWriter<KillPlayer>,
     spatial_query: SpatialQuery,
@@ -120,7 +121,10 @@ pub fn move_player(
     let (config, time, input_state, current_level) = resources;
     let (solids, side_kill_solids, player) = queries;
     let dt = time.delta_secs();
-    let level = current_level.level.as_ref().unwrap();
+
+    let Some(level) = current_level.get_from(&levels) else {
+        return;
+    };
 
     let forward_speed = level.scroll_speed_px * config.camera.zoom;
 

@@ -3,7 +3,7 @@ pub mod triggers;
 
 use crate::AppState;
 use crate::config::Config;
-use crate::gameplay::death::{DeathPause, KillPlayer, begin_death_pause, tick_death_pause};
+use crate::gameplay::death::{DeathPause, KillPlayer, begin, tick};
 use crate::gameplay::triggers::{TriggerState, apply_player_triggers};
 use crate::level::load::CurrentLevel;
 use crate::level::model::LevelEntity;
@@ -28,15 +28,16 @@ impl Plugin for GameplayPlugin {
         .add_systems(OnEnter(AppState::MainMenu), cleanup_gameplay);
         app.add_systems(
             Update,
-            (apply_player_triggers, begin_death_pause)
+            (apply_player_triggers, begin)
                 .chain()
                 .after(move_player)
                 .run_if(in_state(AppState::Playing)),
         )
-        .add_systems(Update, tick_death_pause.run_if(in_state(AppState::Dead)));
+        .add_systems(Update, tick.run_if(in_state(AppState::Dead)));
     }
 }
 fn cleanup_gameplay(
+    _levels: Res<crate::level::registry::Levels>,
     mut commands: Commands,
     mut current_level: ResMut<CurrentLevel>,
     mut trigger_state: ResMut<TriggerState>,
@@ -45,7 +46,6 @@ fn cleanup_gameplay(
     for entity in &entities {
         commands.entity(entity).despawn();
     }
-    current_level.index = None;
-    current_level.level = None;
+    current_level.0 = None;
     trigger_state.0.clear();
 }

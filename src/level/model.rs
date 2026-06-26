@@ -17,7 +17,7 @@ pub fn register_level_data_types(app: &mut App) {
     }
 }
 
-#[level_data]
+#[level_data(Default)]
 pub struct Level {
     pub id: Option<String>,
     pub name: String,
@@ -32,14 +32,27 @@ pub struct Level {
     pub audio_visualizer: Option<AudioVisualizer>,
 }
 
-#[level_data]
+impl Level {
+    pub fn new() -> Self {
+        Self {
+            id: Some("untitled".into()),
+            name: "Untitled world".into(),
+            description: "ya demo world, eh?".into(),
+            size: Vec2::splat(20.0),
+            scroll_speed_px: 25.0,
+            ..default()
+        }
+    }
+}
+
+#[level_data(Default)]
 pub struct PlayerDef {
     pub spawn: Vec2,
     pub size: Vec2,
     pub color: Color,
 }
 
-#[level_data]
+#[level_data(Default)]
 pub struct Ground {
     pub y: f32,
     pub height: f32,

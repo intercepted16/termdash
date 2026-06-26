@@ -13,13 +13,18 @@ use avian2d::prelude::{ColliderConstructor, RigidBody, Sensor};
 use bevy::prelude::*;
 use std::fmt;
 use std::fs;
-use std::path::PathBuf;
 
 #[derive(Resource, Default)]
-pub struct CurrentLevel {
-    pub index: Option<usize>,
-    pub path: Option<PathBuf>,
-    pub level: Option<Level>,
+pub struct CurrentLevel(pub Option<usize>);
+
+impl CurrentLevel {
+    pub fn get_from<'a>(&self, levels: &'a Levels) -> Option<&'a Level> {
+        levels.get(self.0?)
+    }
+
+    pub fn get_from_mut<'a>(&self, levels: &'a mut Levels) -> Option<&'a mut Level> {
+        levels.get_mut(self.0?)
+    }
 }
 
 #[derive(Message)]
@@ -239,9 +244,7 @@ pub fn load_level(
         spawn_music(&mut commands, &config, &asset_server, level);
         commands.spawn((LevelEntity, Player::bundle(&level.player)));
 
-        current_level.index = Some(event.index);
-        current_level.path = registry.path(event.index).map(PathBuf::from);
-        current_level.level = Some(level.clone());
+        current_level.0 = Some(event.index);
     }
 }
 
