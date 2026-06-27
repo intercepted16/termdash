@@ -57,6 +57,12 @@ fn app_state_input(
             }
         }
 
+        AppState::Dead => {
+            if input.just_pressed(TerminalKeyCode::Esc) {
+                next.set(AppState::Paused)
+            }
+        }
+
         AppState::Editing => {
             if input.just_pressed(TerminalKeyCode::Char('e')) {
                 next.set(AppState::Playing);
