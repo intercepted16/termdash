@@ -28,7 +28,7 @@ impl CurrentLevel {
 }
 
 #[derive(Message)]
-pub struct LoadWorldEvent {
+pub struct LoadLevelEvent {
     pub index: usize,
 }
 
@@ -208,7 +208,7 @@ pub fn load_level(
     resources: (Res<Config>, Res<AssetServer>, Res<Levels>, Res<Prefabs>),
     render_assets: (ResMut<Assets<Mesh>>, ResMut<Assets<ColorMaterial>>),
     mut commands: Commands,
-    mut events: MessageReader<LoadWorldEvent>,
+    mut events: MessageReader<LoadLevelEvent>,
     mut current_level: ResMut<CurrentLevel>,
     world_entities: Query<Entity, With<LevelEntity>>,
     music_entities: MusicEntities,

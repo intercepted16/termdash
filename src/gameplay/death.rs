@@ -1,6 +1,6 @@
 use crate::AppState;
 use crate::config::Config;
-use crate::level::load::{CurrentLevel, LoadWorldEvent, despawn_music};
+use crate::level::load::{CurrentLevel, LoadLevelEvent, despawn_music};
 use crate::level::model::Level;
 use crate::level::queries::MusicEntities;
 use crate::player::queries::PlayerQuery;
@@ -73,7 +73,7 @@ pub fn tick(
     current_level: Res<CurrentLevel>,
     mut next_state: ResMut<NextState<AppState>>,
     mut pause: ResMut<DeathPause>,
-    mut load_events: MessageWriter<LoadWorldEvent>,
+    mut load_events: MessageWriter<LoadLevelEvent>,
 ) {
     pause.timer.tick(time.delta());
 
@@ -90,6 +90,6 @@ pub fn tick(
         return;
     };
 
-    load_events.write(LoadWorldEvent { index });
+    load_events.write(LoadLevelEvent { index });
     next_state.set(AppState::Playing);
 }

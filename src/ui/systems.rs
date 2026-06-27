@@ -1,6 +1,6 @@
 use crate::AppState;
 use crate::input::InputState;
-use crate::level::load::{CurrentLevel, LoadWorldEvent};
+use crate::level::load::LoadLevelEvent;
 use crate::level::model::LevelMusic;
 use crate::level::registry::Levels;
 use crate::ui::model::MenuState;
@@ -30,8 +30,7 @@ fn main_menu_input(
     input: Res<InputState>,
     mut menu: ResMut<MenuState>,
     mut levels: ResMut<Levels>,
-    mut current_level: ResMut<CurrentLevel>,
-    mut load_world_events: MessageWriter<LoadWorldEvent>,
+    mut load_world_events: MessageWriter<LoadLevelEvent>,
     mut next_state: ResMut<NextState<AppState>>,
 ) {
     if input.just_pressed(TerminalKeyCode::Up) {
@@ -46,8 +45,7 @@ fn main_menu_input(
         && let Ok(index) = levels.save_new()
     {
         menu.0 = index;
-        current_level.0 = Some(index);
-        load_world_events.write(LoadWorldEvent { index });
+        load_world_events.write(LoadLevelEvent { index });
         next_state.set(AppState::Editing);
     }
 
@@ -59,7 +57,7 @@ fn main_menu_input(
     }
 
     if input.just_pressed(TerminalKeyCode::Enter) && !levels.is_empty() {
-        load_world_events.write(LoadWorldEvent { index: menu.0 });
+        load_world_events.write(LoadLevelEvent { index: menu.0 });
 
         next_state.set(AppState::Playing);
     }
