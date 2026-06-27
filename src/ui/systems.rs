@@ -41,9 +41,14 @@ fn main_menu_input(
         menu.next(levels.len());
     }
 
-    if input.just_pressed(TerminalKeyCode::Char('+'))
-        && let Ok(index) = levels.save_new()
-    {
+    if input.just_pressed(TerminalKeyCode::Char('+')) {
+        let index = match levels.save_new() {
+            Ok(index) => index,
+            Err(err) => {
+                error!("could not create a new level: {err}");
+                return;
+            }
+        };
         menu.0 = index;
         load_world_events.write(LoadLevelEvent { index });
         next_state.set(AppState::Editing);

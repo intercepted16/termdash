@@ -32,19 +32,6 @@ pub struct Level {
     pub audio_visualizer: Option<AudioVisualizer>,
 }
 
-impl Level {
-    pub fn new() -> Self {
-        Self {
-            id: Some("untitled".into()),
-            name: "Untitled world".into(),
-            description: "ya demo world, eh?".into(),
-            size: Vec2::splat(20.0),
-            scroll_speed_px: 25.0,
-            ..default()
-        }
-    }
-}
-
 #[level_data(Default)]
 pub struct PlayerDef {
     pub spawn: Vec2,

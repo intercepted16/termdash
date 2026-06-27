@@ -6,6 +6,8 @@ use std::fs;
 use std::ops::{Deref, DerefMut};
 use std::path::PathBuf;
 
+use std::time::{SystemTime, UNIX_EPOCH};
+
 #[derive(Resource, Default)]
 pub struct Levels {
     levels: Vec<Level>,
@@ -28,6 +30,7 @@ impl DerefMut for Levels {
 }
 
 impl Levels {
+    /// Load all levels from `worlds/`, given `GamePaths`. Ignores files beginning with '_'.
     pub fn load(game_paths: &GamePaths) -> Result<Self, String> {
         let dir = game_paths.asset("worlds");
 
@@ -37,6 +40,10 @@ impl Levels {
             .map_err(|err| format!("{}: {err}", dir.display()))?
             .filter_map(|entry| entry.ok().map(|entry| entry.path()))
             .filter(|path| path.extension().is_some_and(|ext| ext == "json"))
+            .filter(|path| {
+                path.file_name()
+                    .is_none_or(|name| !name.to_string_lossy().starts_with('_'))
+            })
             .collect::<Vec<_>>();
         paths.sort();
 
@@ -74,11 +81,21 @@ impl Levels {
         Ok(path.clone())
     }
 
-    /// Register and save a new level to disk, returning it's index or an error.
-    pub fn save_new(&mut self) -> Result<usize, String> {
-        let level = Level::new();
-        let id = level.id.as_deref().unwrap_or("untitled");
-        let path = self.dir.join(format!("{}.json", id));
+    /// Register and save a new default level to disk, returning it's index or an error.
+    pub fn save_new(&mut self) -> Result<usize, Box<dyn std::error::Error>> {
+        let json = fs::read_to_string(self.dir.join("_default_level.json"))?;
+        let mut level: Level = serde_json::from_str(&json)?;
+
+        let stamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_millis()
+            .to_string();
+
+        level.id = Some(format!("{}_{}", level.id.as_deref().unwrap(), stamp));
+        let path = self
+            .dir
+            .join(format!("{}.json", level.id.as_deref().unwrap()));
 
         let json = serde_json::to_string_pretty(&level).map_err(|err| err.to_string())?;
         fs::write(&path, json).map_err(|err| format!("{}: {err}", path.display()))?;
