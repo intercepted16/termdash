@@ -141,6 +141,11 @@ pub fn show_editor(
             clamp_selection(&mut params.editor, level);
             params.editor.dirty = true;
             params.editor.status = "edited level data".to_string();
+            params.editor.refresh_pending = true;
+        }
+
+        if params.editor.refresh_pending && !ctx.wants_keyboard_input() {
+            params.editor.refresh_pending = false;
             params.refresh_events.write(RefreshLevelEvent);
         }
     }

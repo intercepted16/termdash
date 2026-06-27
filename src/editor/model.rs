@@ -15,6 +15,7 @@ pub struct EditorState {
     pub selected_object: Option<usize>,
     pub status: String,
     pub dirty: bool,
+    pub refresh_pending: bool,
 }
 
 impl Default for EditorState {
@@ -23,6 +24,7 @@ impl Default for EditorState {
             selected_object: None,
             status: "editor closed".to_string(),
             dirty: false,
+            refresh_pending: false,
         }
     }
 }
