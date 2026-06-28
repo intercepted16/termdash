@@ -7,8 +7,8 @@ use crate::player::queries::PlayerQuery;
 
 use avian2d::prelude::{Collider, ShapeCastConfig, SpatialQuery, SpatialQueryFilter};
 use bevy::prelude::*;
+use crossterm::event::KeyCode as TerminalKeyCode;
 
-use ratatui::crossterm::event::KeyCode;
 use std::f32::consts::PI;
 
 type MovementQueries<'w, 's> = (
@@ -118,7 +118,7 @@ pub fn move_player(
     spatial_query: SpatialQuery,
     queries: MovementQueries,
 ) {
-    let (config, time, input_state, current_level) = resources;
+    let (config, time, input, current_level) = resources;
     let (solids, side_kill_solids, player) = queries;
     let dt = time.delta_secs();
 
@@ -126,14 +126,14 @@ pub fn move_player(
         return;
     };
 
-    let forward_speed = level.scroll_speed_px * config.camera.zoom;
+    let (player_entity, mut transform, collider, mut velocity, mut player) = player.into_inner();
+
+    let forward_speed = level.scroll_speed_px * player.scroll_speed_multiplier * config.camera.zoom;
 
     let gravity = config.player.gravity_px * config.camera.zoom;
     let jump_speed = config.player.jump_speed_px * config.camera.zoom;
 
-    let wants_jump = input_state.just_pressed(KeyCode::Up);
-
-    let (player_entity, mut transform, collider, mut velocity, mut player) = player.into_inner();
+    let wants_jump = input.just_pressed(TerminalKeyCode::Up);
 
     let gravity_dir = player.gravity_dir;
     let gravity_velocity = gravity_dir.as_vec2() * gravity;

@@ -99,6 +99,8 @@ pub struct LevelObject {
 
 #[derive(Deserialize)]
 pub struct Prefab {
+    #[serde(default)]
+    pub color: Option<Color>,
     pub visual: Visual,
     pub collider: Option<ColliderConstructor>,
     pub behavior: Option<ObjectBehavior>,
@@ -136,6 +138,7 @@ pub enum Visual {
 
 #[derive(Clone, Debug)]
 pub struct ResolvedObject {
+    pub color: Option<Color>,
     pub visual: Visual,
     pub collider: ColliderConstructor,
     pub behavior: ObjectBehavior,

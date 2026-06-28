@@ -116,9 +116,13 @@ impl LevelObject {
 
         resolved.behavior.insert(&mut entity);
 
-        resolved
-            .visual
-            .spawn(&mut entity, meshes, materials, self.color, asset_server);
+        resolved.visual.spawn(
+            &mut entity,
+            meshes,
+            materials,
+            self.color.or(resolved.color),
+            asset_server,
+        );
     }
     fn resolve(&self, prefabs: &Prefabs) -> Result<ResolvedObject, ResolveObjectError> {
         let prefab = match &self.prefab {
@@ -153,6 +157,9 @@ impl LevelObject {
             .ok_or(ResolveObjectError::MissingBehavior)?;
 
         Ok(ResolvedObject {
+            color: self
+                .color
+                .or_else(|| prefab.and_then(|prefab| prefab.color)),
             visual: visual.clone(),
             behavior: behavior.clone(),
             collider: collider.clone(),
