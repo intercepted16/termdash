@@ -1,184 +1,636 @@
 {
-	"solid": {
-		"visual": {
-			"type": "shape",
-			"shape": {
-				"Rectangle": {
-					"x_length": 80.0,
-					"y_length": 24.0
-				}
-			}
-		},
-		"behavior": {
-			"type": "solid"
-		}
-	},
-	"spike": {
-		"visual": {
-			"type": "shape",
-			"shape": {
-				"Triangle": {
-					"a": [
-						-15.0,
-						-16.0
-					],
-					"b": [
-						15.0,
-						-16.0
-					],
-					"c": [
-						0.0,
-						16.0
-					]
-				}
-			}
-		},
-		"behavior": {
-			"type": "trigger",
-			"activation": "touch",
-			"effect": {
-				"type": "kill_player"
-			}
-		}
-	},
-	"jump_orb": {
-		"visual": {
-			"type": "shape",
-			"shape": {
-				"Circle": {
-					"radius": 24.0
-				}
-			}
-		},
-		"behavior": {
-			"type": "trigger",
-			"activation": "jump_pressed",
-			"effect": {
-				"type": "set_min_vertical_speed_px",
-				"speed_px": 180.0
-			}
-		}
-	},
-	"gravity_portal": {
-		"visual": {
-			"type": "shape",
-			"shape": {
-				"Rectangle": {
-					"x_length": 32.0,
-					"y_length": 32.0
-				}
-			}
-		},
-		"behavior": {
-			"type": "trigger",
-			"activation": "touch",
-			"effect": {
-				"type": "flip_gravity"
-			}
-		}
-	},
-	"sawblade": {
-		"visual": {
-			"type": "sprite",
-			"path": "sprites/sawblade.png",
-			"animations": [
-				{
-					"type": "spin",
-					"degrees_per_second": 180.0
-				}
-			]
-		},
-		"behavior": {
-			"type": "trigger",
-			"activation": "touch",
-			"effect": {
-				"type": "kill_player"
-			}
-		},
-		"collider": {
-			"Circle": {
-				"radius": 50.0
-			}
-		}
-	},
-	"reverse_spike": {
-		"visual": {
-			"type": "shape",
-			"shape": {
-				"Triangle": {
-					"a": [
-						-15.0,
-						16.0
-					],
-					"b": [
-						15.0,
-						16.0
-					],
-					"c": [
-						0.0,
-						-16.0
-					]
-				}
-			}
-		},
-		"behavior": {
-			"type": "trigger",
-			"activation": "touch",
-			"effect": {
-				"type": "kill_player"
-			}
-		}
-	},
-	"speed_portal": {
-		"visual": {
-			"type": "sprite",
-			"path": "sprites/speed_portal.png",
-			"animations": [
-				{
-					"type": "spin",
-					"degrees_per_second": 90.0
-				}
-			]
-		},
-		"behavior": {
-			"type": "trigger",
-			"activation": "touch",
-			"effect": {
-				"type": "multiply_scroll_speed",
-				"multiplier": 2.0
-			}
-		},
-		"collider": {
-			"Rectangle": {
-				"x_length": 40.0,
-				"y_length": 64.0
-			}
-		}
-	},
-	"slow_speed_portal": {
-		"visual": {
-			"type": "sprite",
-			"path": "sprites/slow_speed_portal.png",
-			"animations": [
-				{
-					"type": "spin",
-					"degrees_per_second": 45.0
-				}
-			]
-		},
-		"behavior": {
-			"type": "trigger",
-			"activation": "touch",
-			"effect": {
-				"type": "multiply_scroll_speed",
-				"multiplier": 0.5
-			}
-		},
-		"collider": {
-			"Rectangle": {
-				"x_length": 40.0,
-				"y_length": 64.0
-			}
-		}
-	}
+  "solid": {
+    "color": {
+      "LinearRgba": {
+        "red": 0.22,
+        "green": 0.6,
+        "blue": 0.92,
+        "alpha": 1.0
+      }
+    },
+    "visual": {
+      "type": "shape",
+      "shape": {
+        "Rectangle": {
+          "x_length": 80.0,
+          "y_length": 24.0
+        }
+      }
+    },
+    "behavior": {
+      "type": "solid"
+    }
+  },
+  "platform": {
+    "color": {
+      "LinearRgba": {
+        "red": 0.18,
+        "green": 0.78,
+        "blue": 0.78,
+        "alpha": 1.0
+      }
+    },
+    "visual": {
+      "type": "shape",
+      "shape": {
+        "Rectangle": {
+          "x_length": 128.0,
+          "y_length": 20.0
+        }
+      }
+    },
+    "behavior": {
+      "type": "solid"
+    }
+  },
+  "mini_platform": {
+    "color": {
+      "LinearRgba": {
+        "red": 0.28,
+        "green": 0.82,
+        "blue": 0.58,
+        "alpha": 1.0
+      }
+    },
+    "visual": {
+      "type": "shape",
+      "shape": {
+        "Rectangle": {
+          "x_length": 56.0,
+          "y_length": 20.0
+        }
+      }
+    },
+    "behavior": {
+      "type": "solid"
+    }
+  },
+  "half_block": {
+    "color": {
+      "LinearRgba": {
+        "red": 0.26,
+        "green": 0.68,
+        "blue": 0.95,
+        "alpha": 1.0
+      }
+    },
+    "visual": {
+      "type": "shape",
+      "shape": {
+        "Rectangle": {
+          "x_length": 40.0,
+          "y_length": 24.0
+        }
+      }
+    },
+    "behavior": {
+      "type": "solid"
+    }
+  },
+  "pillar": {
+    "color": {
+      "LinearRgba": {
+        "red": 0.16,
+        "green": 0.36,
+        "blue": 0.78,
+        "alpha": 1.0
+      }
+    },
+    "visual": {
+      "type": "shape",
+      "shape": {
+        "Rectangle": {
+          "x_length": 32.0,
+          "y_length": 96.0
+        }
+      }
+    },
+    "behavior": {
+      "type": "solid"
+    }
+  },
+  "ceiling_slab": {
+    "color": {
+      "LinearRgba": {
+        "red": 0.12,
+        "green": 0.32,
+        "blue": 0.74,
+        "alpha": 1.0
+      }
+    },
+    "visual": {
+      "type": "shape",
+      "shape": {
+        "Rectangle": {
+          "x_length": 160.0,
+          "y_length": 16.0
+        }
+      }
+    },
+    "behavior": {
+      "type": "solid"
+    }
+  },
+  "spike": {
+    "color": {
+      "LinearRgba": {
+        "red": 0.96,
+        "green": 0.18,
+        "blue": 0.2,
+        "alpha": 1.0
+      }
+    },
+    "visual": {
+      "type": "shape",
+      "shape": {
+        "Triangle": {
+          "a": [
+            -15.0,
+            -16.0
+          ],
+          "b": [
+            15.0,
+            -16.0
+          ],
+          "c": [
+            0.0,
+            16.0
+          ]
+        }
+      }
+    },
+    "behavior": {
+      "type": "trigger",
+      "activation": "touch",
+      "effect": {
+        "type": "kill_player"
+      }
+    }
+  },
+  "mini_spike": {
+    "color": {
+      "LinearRgba": {
+        "red": 1.0,
+        "green": 0.34,
+        "blue": 0.18,
+        "alpha": 1.0
+      }
+    },
+    "visual": {
+      "type": "shape",
+      "shape": {
+        "Triangle": {
+          "a": [
+            -10.0,
+            -12.0
+          ],
+          "b": [
+            10.0,
+            -12.0
+          ],
+          "c": [
+            0.0,
+            12.0
+          ]
+        }
+      }
+    },
+    "behavior": {
+      "type": "trigger",
+      "activation": "touch",
+      "effect": {
+        "type": "kill_player"
+      }
+    }
+  },
+  "reverse_spike": {
+    "color": {
+      "LinearRgba": {
+        "red": 0.96,
+        "green": 0.18,
+        "blue": 0.2,
+        "alpha": 1.0
+      }
+    },
+    "visual": {
+      "type": "shape",
+      "shape": {
+        "Triangle": {
+          "a": [
+            -15.0,
+            16.0
+          ],
+          "b": [
+            15.0,
+            16.0
+          ],
+          "c": [
+            0.0,
+            -16.0
+          ]
+        }
+      }
+    },
+    "behavior": {
+      "type": "trigger",
+      "activation": "touch",
+      "effect": {
+        "type": "kill_player"
+      }
+    }
+  },
+  "jump_orb": {
+    "color": {
+      "LinearRgba": {
+        "red": 1.0,
+        "green": 0.86,
+        "blue": 0.12,
+        "alpha": 1.0
+      }
+    },
+    "visual": {
+      "type": "shape",
+      "shape": {
+        "Circle": {
+          "radius": 24.0
+        }
+      }
+    },
+    "behavior": {
+      "type": "trigger",
+      "activation": "jump_pressed",
+      "effect": {
+        "type": "set_min_vertical_speed_px",
+        "speed_px": 180.0
+      }
+    }
+  },
+  "pink_orb": {
+    "color": {
+      "LinearRgba": {
+        "red": 1.0,
+        "green": 0.34,
+        "blue": 0.78,
+        "alpha": 1.0
+      }
+    },
+    "visual": {
+      "type": "shape",
+      "shape": {
+        "Circle": {
+          "radius": 20.0
+        }
+      }
+    },
+    "behavior": {
+      "type": "trigger",
+      "activation": "jump_pressed",
+      "effect": {
+        "type": "set_min_vertical_speed_px",
+        "speed_px": 135.0
+      }
+    }
+  },
+  "blue_orb": {
+    "color": {
+      "LinearRgba": {
+        "red": 0.18,
+        "green": 0.72,
+        "blue": 1.0,
+        "alpha": 1.0
+      }
+    },
+    "visual": {
+      "type": "shape",
+      "shape": {
+        "Circle": {
+          "radius": 22.0
+        }
+      }
+    },
+    "behavior": {
+      "type": "trigger",
+      "activation": "jump_pressed",
+      "effect": {
+        "type": "flip_gravity",
+        "min_vertical_speed_px": 165.0
+      }
+    }
+  },
+  "yellow_pad": {
+    "color": {
+      "LinearRgba": {
+        "red": 1.0,
+        "green": 0.82,
+        "blue": 0.08,
+        "alpha": 1.0
+      }
+    },
+    "visual": {
+      "type": "shape",
+      "shape": {
+        "Rectangle": {
+          "x_length": 48.0,
+          "y_length": 12.0
+        }
+      }
+    },
+    "behavior": {
+      "type": "trigger",
+      "activation": "touch",
+      "effect": {
+        "type": "set_min_vertical_speed_px",
+        "speed_px": 210.0
+      }
+    }
+  },
+  "pink_pad": {
+    "color": {
+      "LinearRgba": {
+        "red": 0.96,
+        "green": 0.28,
+        "blue": 0.78,
+        "alpha": 1.0
+      }
+    },
+    "visual": {
+      "type": "shape",
+      "shape": {
+        "Rectangle": {
+          "x_length": 44.0,
+          "y_length": 12.0
+        }
+      }
+    },
+    "behavior": {
+      "type": "trigger",
+      "activation": "touch",
+      "effect": {
+        "type": "set_min_vertical_speed_px",
+        "speed_px": 145.0
+      }
+    }
+  },
+  "blue_pad": {
+    "color": {
+      "LinearRgba": {
+        "red": 0.12,
+        "green": 0.62,
+        "blue": 1.0,
+        "alpha": 1.0
+      }
+    },
+    "visual": {
+      "type": "shape",
+      "shape": {
+        "Rectangle": {
+          "x_length": 44.0,
+          "y_length": 12.0
+        }
+      }
+    },
+    "behavior": {
+      "type": "trigger",
+      "activation": "touch",
+      "effect": {
+        "type": "flip_gravity",
+        "min_vertical_speed_px": 170.0
+      }
+    }
+  },
+  "gravity_portal": {
+    "color": {
+      "LinearRgba": {
+        "red": 0.18,
+        "green": 0.92,
+        "blue": 1.0,
+        "alpha": 1.0
+      }
+    },
+    "visual": {
+      "type": "shape",
+      "shape": {
+        "Rectangle": {
+          "x_length": 32.0,
+          "y_length": 72.0
+        }
+      }
+    },
+    "behavior": {
+      "type": "trigger",
+      "activation": "touch",
+      "effect": {
+        "type": "flip_gravity"
+      }
+    }
+  },
+  "gravity_up_portal": {
+    "color": {
+      "LinearRgba": {
+        "red": 0.12,
+        "green": 0.82,
+        "blue": 1.0,
+        "alpha": 1.0
+      }
+    },
+    "visual": {
+      "type": "shape",
+      "shape": {
+        "Rectangle": {
+          "x_length": 36.0,
+          "y_length": 84.0
+        }
+      }
+    },
+    "behavior": {
+      "type": "trigger",
+      "activation": "touch",
+      "effect": {
+        "type": "set_gravity_up"
+      }
+    }
+  },
+  "gravity_down_portal": {
+    "color": {
+      "LinearRgba": {
+        "red": 1.0,
+        "green": 0.52,
+        "blue": 0.18,
+        "alpha": 1.0
+      }
+    },
+    "visual": {
+      "type": "shape",
+      "shape": {
+        "Rectangle": {
+          "x_length": 36.0,
+          "y_length": 84.0
+        }
+      }
+    },
+    "behavior": {
+      "type": "trigger",
+      "activation": "touch",
+      "effect": {
+        "type": "set_gravity_down"
+      }
+    }
+  },
+  "mini_portal": {
+    "color": {
+      "LinearRgba": {
+        "red": 0.42,
+        "green": 1.0,
+        "blue": 0.48,
+        "alpha": 1.0
+      }
+    },
+    "visual": {
+      "type": "shape",
+      "shape": {
+        "Rectangle": {
+          "x_length": 34.0,
+          "y_length": 76.0
+        }
+      }
+    },
+    "behavior": {
+      "type": "trigger",
+      "activation": "touch",
+      "effect": {
+        "type": "set_player_scale",
+        "scale": 0.62
+      }
+    }
+  },
+  "normal_portal": {
+    "color": {
+      "LinearRgba": {
+        "red": 1.0,
+        "green": 0.58,
+        "blue": 0.18,
+        "alpha": 1.0
+      }
+    },
+    "visual": {
+      "type": "shape",
+      "shape": {
+        "Rectangle": {
+          "x_length": 34.0,
+          "y_length": 76.0
+        }
+      }
+    },
+    "behavior": {
+      "type": "trigger",
+      "activation": "touch",
+      "effect": {
+        "type": "set_player_scale",
+        "scale": 1.0
+      }
+    }
+  },
+  "sawblade": {
+    "visual": {
+      "type": "sprite",
+      "path": "sprites/sawblade.png",
+      "animations": [
+        {
+          "type": "spin",
+          "degrees_per_second": 180.0
+        }
+      ]
+    },
+    "behavior": {
+      "type": "trigger",
+      "activation": "touch",
+      "effect": {
+        "type": "kill_player"
+      }
+    },
+    "collider": {
+      "Circle": {
+        "radius": 50.0
+      }
+    }
+  },
+  "speed_portal": {
+    "visual": {
+      "type": "sprite",
+      "path": "sprites/speed_portal.png",
+      "animations": [
+        {
+          "type": "spin",
+          "degrees_per_second": 90.0
+        }
+      ]
+    },
+    "behavior": {
+      "type": "trigger",
+      "activation": "touch",
+      "effect": {
+        "type": "set_scroll_speed_multiplier",
+        "multiplier": 1.45
+      }
+    },
+    "collider": {
+      "Rectangle": {
+        "x_length": 40.0,
+        "y_length": 64.0
+      }
+    }
+  },
+  "slow_speed_portal": {
+    "visual": {
+      "type": "sprite",
+      "path": "sprites/slow_speed_portal.png",
+      "animations": [
+        {
+          "type": "spin",
+          "degrees_per_second": 45.0
+        }
+      ]
+    },
+    "behavior": {
+      "type": "trigger",
+      "activation": "touch",
+      "effect": {
+        "type": "set_scroll_speed_multiplier",
+        "multiplier": 0.75
+      }
+    },
+    "collider": {
+      "Rectangle": {
+        "x_length": 40.0,
+        "y_length": 64.0
+      }
+    }
+  },
+  "normal_speed_portal": {
+    "color": {
+      "LinearRgba": {
+        "red": 0.72,
+        "green": 0.9,
+        "blue": 0.24,
+        "alpha": 1.0
+      }
+    },
+    "visual": {
+      "type": "shape",
+      "shape": {
+        "Rectangle": {
+          "x_length": 34.0,
+          "y_length": 70.0
+        }
+      }
+    },
+    "behavior": {
+      "type": "trigger",
+      "activation": "touch",
+      "effect": {
+        "type": "set_scroll_speed_multiplier",
+        "multiplier": 1.0
+      }
+    }
+  }
 }

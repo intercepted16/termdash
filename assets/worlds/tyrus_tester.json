@@ -1,16 +1,25 @@
 {
 	"id": "tyrus_tester",
 	"name": "Tyrus Tester",
-	"description": "silly tyrus tester",
+	"description": "tyrus is tuff like from breaking bad, this one is harder!",
 	"music_path": "music/field_of_memories.ogg",
 	"audio_visualizer": {
-		"bar_count": 32
+		"bar_count": 48
 	},
-	"size": [3600.0, 560.0],
-	"scroll_speed_px": 72.0,
+	"size": [
+		5600.0,
+		680.0
+	],
+	"scroll_speed_px": 74.0,
 	"player": {
-		"spawn": [80.0, -208.0],
-		"size": [32.0, 32.0],
+		"spawn": [
+			80.0,
+			-208.0
+		],
+		"size": [
+			32.0,
+			32.0
+		],
 		"color": {
 			"LinearRgba": {
 				"red": 1.0,
@@ -25,426 +34,315 @@
 		"height": 16.0,
 		"color": {
 			"LinearRgba": {
-				"red": 0.12,
-				"green": 0.36,
-				"blue": 0.72,
+				"red": 0.1,
+				"green": 0.34,
+				"blue": 0.78,
 				"alpha": 1.0
 			}
 		},
 		"segments": [
 			{
 				"start_x": -160.0,
-				"width": 760.0
+				"width": 780.0
 			},
 			{
-				"start_x": 690.0,
-				"width": 430.0
+				"start_x": 710.0,
+				"width": 520.0
 			},
 			{
-				"start_x": 1210.0,
-				"width": 660.0
+				"start_x": 1330.0,
+				"width": 640.0
 			},
 			{
-				"start_x": 1970.0,
-				"width": 510.0
+				"start_x": 2100.0,
+				"width": 720.0
 			},
 			{
-				"start_x": 2570.0,
-				"width": 1030.0
+				"start_x": 3040.0,
+				"width": 620.0
+			},
+			{
+				"start_x": 3920.0,
+				"width": 1760.0
 			}
 		]
 	},
 	"objects": [
 		{
-			"prefab": "solid",
-			"position": [250.0, -184.0],
-			"color": {
-				"LinearRgba": {
-					"red": 0.22,
-					"green": 0.64,
-					"blue": 0.96,
-					"alpha": 1.0
-				}
-			}
+			"prefab": "platform",
+			"position": [
+				270.0,
+				-184.0
+			]
 		},
 		{
 			"prefab": "spike",
-			"position": [430.0, -208.0],
-			"color": {
-				"LinearRgba": {
-					"red": 0.95,
-					"green": 0.18,
-					"blue": 0.16,
-					"alpha": 1.0
-				}
-			}
+			"position": [
+				455.0,
+				-208.0
+			]
 		},
 		{
-			"prefab": "solid",
-			"position": [760.0, -184.0],
-			"color": {
-				"LinearRgba": {
-					"red": 0.2,
-					"green": 0.72,
-					"blue": 0.66,
-					"alpha": 1.0
-				}
-			},
+			"prefab": "yellow_pad",
+			"position": [
+				585.0,
+				-218.0
+			]
+		},
+		{
+			"prefab": "mini_platform",
+			"position": [
+				775.0,
+				-142.0
+			]
+		},
+		{
+			"prefab": "jump_orb",
+			"position": [
+				870.0,
+				-86.0
+			]
+		},
+		{
+			"prefab": "platform",
+			"position": [
+				1010.0,
+				-166.0
+			]
+		},
+		{
+			"prefab": "sawblade",
+			"position": [
+				1170.0,
+				-168.0
+			],
+			"scale": 0.42
+		},
+		{
+			"prefab": "speed_portal",
+			"position": [
+				1360.0,
+				-184.0
+			],
+			"scale": 0.42
+		},
+		{
+			"prefab": "pillar",
+			"position": [
+				1515.0,
+				-176.0
+			]
+		},
+		{
+			"prefab": "spike",
+			"position": [
+				1625.0,
+				-208.0
+			]
+		},
+		{
+			"prefab": "pink_pad",
+			"position": [
+				1735.0,
+				-218.0
+			]
+		},
+		{
+			"prefab": "pink_orb",
+			"position": [
+				1855.0,
+				-124.0
+			]
+		},
+		{
+			"prefab": "mini_portal",
+			"position": [
+				2135.0,
+				-188.0
+			]
+		},
+		{
+			"prefab": "mini_spike",
+			"position": [
+				2260.0,
+				-212.0
+			]
+		},
+		{
+			"prefab": "mini_spike",
+			"position": [
+				2300.0,
+				-212.0
+			]
+		},
+		{
+			"prefab": "half_block",
+			"position": [
+				2395.0,
+				-184.0
+			]
+		},
+		{
+			"prefab": "mini_platform",
+			"position": [
+				2515.0,
+				-150.0
+			]
+		},
+		{
+			"prefab": "sawblade",
+			"position": [
+				2645.0,
+				-170.0
+			],
+			"scale": 0.34
+		},
+		{
+			"prefab": "normal_portal",
+			"position": [
+				2785.0,
+				-188.0
+			]
+		},
+		{
+			"prefab": "normal_speed_portal",
+			"position": [
+				3065.0,
+				-186.0
+			]
+		},
+		{
+			"prefab": "blue_pad",
+			"position": [
+				3250.0,
+				-218.0
+			]
+		},
+		{
+			"prefab": "ceiling_slab",
+			"position": [
+				3500.0,
+				112.0
+			],
 			"visual": {
 				"type": "shape",
 				"shape": {
 					"Rectangle": {
-						"x_length": 108.0,
-						"y_length": 24.0
+						"x_length": 720.0,
+						"y_length": 16.0
 					}
+				}
+			}
+		},
+		{
+			"prefab": "reverse_spike",
+			"position": [
+				3385.0,
+				96.0
+			]
+		},
+		{
+			"prefab": "reverse_spike",
+			"position": [
+				3610.0,
+				96.0
+			]
+		},
+		{
+			"prefab": "blue_orb",
+			"position": [
+				3775.0,
+				36.0
+			]
+		},
+		{
+			"prefab": "gravity_down_portal",
+			"position": [
+				3910.0,
+				72.0
+			]
+		},
+		{
+			"prefab": "slow_speed_portal",
+			"position": [
+				4095.0,
+				-184.0
+			],
+			"scale": 0.42
+		},
+		{
+			"prefab": "platform",
+			"position": [
+				4250.0,
+				-176.0
+			],
+			"color": {
+				"LinearRgba": {
+					"red": 0.84,
+					"green": 0.56,
+					"blue": 0.18,
+					"alpha": 1.0
 				}
 			}
 		},
 		{
 			"prefab": "jump_orb",
-			"position": [845.0, -136.0],
-			"color": {
-				"LinearRgba": {
-					"red": 1.0,
-					"green": 0.84,
-					"blue": 0.16,
-					"alpha": 1.0
-				}
-			}
+			"position": [
+				4370.0,
+				-104.0
+			]
 		},
 		{
-			"prefab": "solid",
-			"position": [910.0, -152.0],
+			"prefab": "platform",
+			"position": [
+				4505.0,
+				-144.0
+			],
 			"color": {
 				"LinearRgba": {
-					"red": 0.2,
-					"green": 0.72,
-					"blue": 0.66,
-					"alpha": 1.0
-				}
-			},
-			"visual": {
-				"type": "shape",
-				"shape": {
-					"Rectangle": {
-						"x_length": 112.0,
-						"y_length": 24.0
-					}
-				}
-			}
-		},
-		{
-			"prefab": "gravity_portal",
-			"position": [1040.0, -218.0],
-			"color": {
-				"LinearRgba": {
-					"red": 0.12,
-					"green": 0.86,
-					"blue": 1.0,
-					"alpha": 1.0
-				}
-			}
-		},
-		{
-			"prefab": "spike",
-			"position": [1350.0, -208.0],
-			"color": {
-				"LinearRgba": {
-					"red": 0.98,
-					"green": 0.2,
-					"blue": 0.22,
-					"alpha": 1.0
-				}
-			}
-		},
-		{
-			"prefab": "solid",
-			"position": [1595.0, 96.0],
-			"visual": {
-				"type": "shape",
-				"shape": {
-					"Rectangle": {
-						"x_length": 550.0,
-						"y_length": 16.0
-					}
-				}
-			},
-			"color": {
-				"LinearRgba": {
-					"red": 0.12,
-					"green": 0.36,
-					"blue": 0.72,
-					"alpha": 1.0
-				}
-			}
-		},
-		{
-			"prefab": "solid",
-			"position": [1455.0, -184.0],
-			"color": {
-				"LinearRgba": {
-					"red": 0.72,
-					"green": 0.58,
+					"red": 0.84,
+					"green": 0.56,
 					"blue": 0.18,
 					"alpha": 1.0
 				}
-			},
-			"visual": {
-				"type": "shape",
-				"shape": {
-					"Rectangle": {
-						"x_length": 96.0,
-						"y_length": 24.0
-					}
-				}
 			}
+		},
+		{
+			"prefab": "sawblade",
+			"position": [
+				4665.0,
+				-174.0
+			],
+			"scale": 0.4
+		},
+		{
+			"prefab": "speed_portal",
+			"position": [
+				4850.0,
+				-184.0
+			],
+			"scale": 0.42
 		},
 		{
 			"prefab": "spike",
-			"position": [1530.0, -208.0],
-			"color": {
-				"LinearRgba": {
-					"red": 0.96,
-					"green": 0.22,
-					"blue": 0.18,
-					"alpha": 1.0
-				}
-			},
-			"visual": {
-				"type": "shape",
-				"shape": {
-					"Triangle": {
-						"a": [-13.0, -16.0],
-						"b": [13.0, -16.0],
-						"c": [0.0, 16.0]
-					}
-				}
-			}
-		},
-		{
-			"prefab": "solid",
-			"position": [1770.0, -168.0],
-			"color": {
-				"LinearRgba": {
-					"red": 0.55,
-					"green": 0.76,
-					"blue": 0.28,
-					"alpha": 1.0
-				}
-			},
-			"visual": {
-				"type": "shape",
-				"shape": {
-					"Rectangle": {
-						"x_length": 120.0,
-						"y_length": 24.0
-					}
-				}
-			}
-		},
-		{
-			"prefab": "solid",
-			"position": [2225.0, 96.0],
-			"visual": {
-				"type": "shape",
-				"shape": {
-					"Rectangle": {
-						"x_length": 510.0,
-						"y_length": 16.0
-					}
-				}
-			},
-			"color": {
-				"LinearRgba": {
-					"red": 0.12,
-					"green": 0.36,
-					"blue": 0.72,
-					"alpha": 1.0
-				}
-			}
-		},
-		{
-			"prefab": "solid",
-			"position": [2050.0, -184.0],
-			"color": {
-				"LinearRgba": {
-					"red": 0.28,
-					"green": 0.62,
-					"blue": 0.95,
-					"alpha": 1.0
-				}
-			},
-			"visual": {
-				"type": "shape",
-				"shape": {
-					"Rectangle": {
-						"x_length": 104.0,
-						"y_length": 24.0
-					}
-				}
-			}
+			"position": [
+				5025.0,
+				-208.0
+			]
 		},
 		{
 			"prefab": "spike",
-			"position": [2165.0, -208.0],
-			"color": {
-				"LinearRgba": {
-					"red": 0.94,
-					"green": 0.18,
-					"blue": 0.28,
-					"alpha": 1.0
-				}
-			}
+			"position": [
+				5085.0,
+				-208.0
+			]
 		},
 		{
-			"prefab": "solid",
-			"position": [2315.0, -152.0],
-			"color": {
-				"LinearRgba": {
-					"red": 0.28,
-					"green": 0.62,
-					"blue": 0.95,
-					"alpha": 1.0
-				}
-			},
-			"visual": {
-				"type": "shape",
-				"shape": {
-					"Rectangle": {
-						"x_length": 116.0,
-						"y_length": 24.0
-					}
-				}
-			}
-		},
-		{
-			"prefab": "solid",
-			"position": [3085.0, 96.0],
-			"visual": {
-				"type": "shape",
-				"shape": {
-					"Rectangle": {
-						"x_length": 1030.0,
-						"y_length": 16.0
-					}
-				}
-			},
-			"color": {
-				"LinearRgba": {
-					"red": 0.12,
-					"green": 0.36,
-					"blue": 0.72,
-					"alpha": 1.0
-				}
-			}
-		},
-		{
-			"prefab": "solid",
-			"position": [2825.0, -184.0],
-			"color": {
-				"LinearRgba": {
-					"red": 0.82,
-					"green": 0.42,
-					"blue": 0.16,
-					"alpha": 1.0
-				}
-			},
-			"visual": {
-				"type": "shape",
-				"shape": {
-					"Rectangle": {
-						"x_length": 86.0,
-						"y_length": 24.0
-					}
-				}
-			}
-		},
-		{
-			"prefab": "solid",
-			"position": [2965.0, -152.0],
-			"color": {
-				"LinearRgba": {
-					"red": 0.82,
-					"green": 0.42,
-					"blue": 0.16,
-					"alpha": 1.0
-				}
-			},
-			"visual": {
-				"type": "shape",
-				"shape": {
-					"Rectangle": {
-						"x_length": 92.0,
-						"y_length": 24.0
-					}
-				}
-			}
-		},
-		{
-			"prefab": "solid",
-			"position": [3110.0, -184.0],
-			"color": {
-				"LinearRgba": {
-					"red": 0.82,
-					"green": 0.42,
-					"blue": 0.16,
-					"alpha": 1.0
-				}
-			},
-			"visual": {
-				"type": "shape",
-				"shape": {
-					"Rectangle": {
-						"x_length": 86.0,
-						"y_length": 24.0
-					}
-				}
-			}
-		},
-		{
-			"prefab": "spike",
-			"position": [3235.0, -208.0],
-			"color": {
-				"LinearRgba": {
-					"red": 0.95,
-					"green": 0.16,
-					"blue": 0.2,
-					"alpha": 1.0
-				}
-			}
-		},
-		{
-			"prefab": "spike",
-			"position": [3300.0, -208.0],
-			"color": {
-				"LinearRgba": {
-					"red": 0.95,
-					"green": 0.16,
-					"blue": 0.2,
-					"alpha": 1.0
-				}
-			}
-		},
-		{
-			"prefab": "solid",
-			"position": [3440.0, -184.0],
-			"color": {
-				"LinearRgba": {
-					"red": 0.36,
-					"green": 0.82,
-					"blue": 0.34,
-					"alpha": 1.0
-				}
-			},
-			"visual": {
-				"type": "shape",
-				"shape": {
-					"Rectangle": {
-						"x_length": 160.0,
-						"y_length": 24.0
-					}
-				}
-			}
+			"prefab": "yellow_pad",
+			"position": [
+				5175.0,
+				-218.0
+			]
 		}
 	]
 }
