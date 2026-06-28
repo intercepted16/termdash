@@ -1,6 +1,6 @@
 pub mod model;
 mod systems;
-use crate::core::camera::render_camera;
+use crate::{core::camera::render_camera, gameplay::RunStats};
 pub use systems::UiPlugin;
 
 use bevy::prelude::*;
@@ -9,7 +9,8 @@ use bevy_ratatui_camera::{RatatuiCamera, RatatuiCameraWidget};
 use ratatui::{
     buffer::Buffer,
     layout::{
-        Alignment::Center, Constraint, Constraint::Length, Direction::Vertical, Layout, Rect,
+        Alignment, Alignment::Center, Constraint, Constraint::Length, Direction::Vertical, Layout,
+        Rect,
     },
     style::{Color::*, Modifier, Style},
     text::{Line, Text},
@@ -17,16 +18,11 @@ use ratatui::{
 };
 use tui_big_text::{BigText, PixelSize};
 
-use crate::{
-    AppState, gameplay::death::DeathPause, level::registry::Levels, state::RuntimeFeatures,
-    ui::model::MenuState,
-};
+use crate::{AppState, level::registry::Levels, state::RuntimeFeatures, ui::model::MenuState};
 
 const BASE: Style = Style::new().fg(White);
 pub(crate) const HI: Style = Style::new().fg(Cyan).add_modifier(Modifier::BOLD);
 const BORDER: Style = Style::new().fg(Green);
-
-type OverlayResources<'w> = Option<Res<'w, DeathPause>>;
 
 const BANNER: &str = r#" _____                     ____            _
 |_   _|__ _ __ _ __ ___   |  _ \  __ _ ___| |__
@@ -40,11 +36,9 @@ pub fn render(
     editor: Res<RuntimeFeatures>,
     menu: Option<Res<MenuState>>,
     levels: Res<Levels>,
-    overlays: OverlayResources,
     mut camera: Query<(&mut RatatuiCameraWidget, &mut RatatuiCamera)>,
+    stats: Res<RunStats>,
 ) {
-    let pause = overlays;
-
     let _ = tui.draw(|f| {
         let block = |t| {
             Block::default()
@@ -120,7 +114,22 @@ pub fn render(
             }
 
             AppState::Playing => {
-                render_camera(&mut camera, f.area(), f.buffer_mut());
+                let area = f.area();
+
+                render_camera(&mut camera, area, f.buffer_mut());
+
+                let text = format!("> Attempt {}: {}%", stats.attempts + 1, stats.percent);
+                let width = text.len() as u16;
+
+                f.render_widget(
+                    Paragraph::new(text).alignment(Alignment::Right).style(HI),
+                    Rect {
+                        x: f.area().right() - width - 1,
+                        y: 0,
+                        width,
+                        height: 1,
+                    },
+                );
             }
 
             AppState::Paused => {
@@ -155,7 +164,7 @@ pub fn render(
                 ])
                 .areas(f.area());
 
-                let text = format!("{}%", pause.unwrap().percent);
+                let text = format!("{}%", stats.percent);
                 let widget = BigText::builder()
                     .lines(vec![Line::from(text)])
                     .pixel_size(PixelSize::Full)

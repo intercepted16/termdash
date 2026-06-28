@@ -1,7 +1,7 @@
 use crate::AppState;
 use crate::config::Config;
+use crate::gameplay::RunStats;
 use crate::level::load::{CurrentLevel, LoadLevelEvent, despawn_music};
-use crate::level::model::Level;
 use crate::level::queries::MusicEntities;
 use crate::player::queries::PlayerQuery;
 use bevy::prelude::*;
@@ -9,7 +9,6 @@ use bevy::prelude::*;
 #[derive(Resource)]
 pub struct DeathPause {
     pub timer: Timer,
-    pub percent: u8,
 }
 
 #[derive(Message)]
@@ -19,22 +18,11 @@ impl DeathPause {
     pub fn new(seconds: f32) -> Self {
         Self {
             timer: Timer::from_seconds(seconds, TimerMode::Once),
-            percent: 0,
         }
     }
 }
 
-fn completion_percent(player_x: f32, level: &Level) -> u8 {
-    let start_x = level.player.spawn.x;
-    let distance = (level.size.x - start_x).max(f32::EPSILON);
-
-    (((player_x - start_x) / distance) * 100.0)
-        .clamp(0.0, 100.0)
-        .round() as u8
-}
-
 pub fn begin(
-    levels: Res<crate::level::registry::Levels>,
     resources: (Res<Config>, Res<CurrentLevel>),
     mut commands: Commands,
     mut next_state: ResMut<NextState<AppState>>,
@@ -42,27 +30,23 @@ pub fn begin(
     player: PlayerQuery,
     music: MusicEntities,
     mut deaths: MessageReader<KillPlayer>,
+    mut stats: ResMut<RunStats>,
 ) {
     if deaths.read().count() == 0 {
         return;
     }
 
-    let (config, current_level) = resources;
+    stats.attempts += 1;
 
-    let Some(level) = current_level.get_from(&levels) else {
-        return;
-    };
+    let (config, _) = resources;
 
-    let (_, transform, _, mut velocity, _) = player.into_inner();
-
-    let percent = completion_percent(transform.translation.x, level);
+    let (_, _, _, mut velocity, _) = player.into_inner();
 
     velocity.0 = Vec2::ZERO;
     despawn_music(&mut commands, &music);
 
     *pause = DeathPause {
         timer: Timer::from_seconds(config.player.death_pause_seconds, TimerMode::Once),
-        percent,
     };
 
     next_state.set(AppState::Dead);
@@ -74,6 +58,7 @@ pub fn tick(
     mut next_state: ResMut<NextState<AppState>>,
     mut pause: ResMut<DeathPause>,
     mut load_events: MessageWriter<LoadLevelEvent>,
+    stats: Res<RunStats>,
 ) {
     pause.timer.tick(time.delta());
 
@@ -81,7 +66,7 @@ pub fn tick(
         return;
     }
 
-    if pause.percent >= 100 {
+    if stats.percent >= 100 {
         next_state.set(AppState::MainMenu);
         return;
     }
