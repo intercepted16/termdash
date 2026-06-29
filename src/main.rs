@@ -73,7 +73,6 @@ fn main() {
 
     let frame_wait = Duration::from_secs_f64(1.0 / config.game.fps.max(1.0));
     let graphics = config.game.graphics;
-    warn!("not running in a graphical environment, editor will be disabled");
     let asset_file_path = paths.data_dir.to_string_lossy().into_owned();
 
     let mut app = App::new();
@@ -100,6 +99,7 @@ fn main() {
             unfocused_mode: UpdateMode::reactive(frame_wait),
         });
     } else {
+        warn!("not running in a graphical environment, editor will be disabled");
         app.add_plugins((
             ScheduleRunnerPlugin::run_loop(frame_wait),
             DefaultPlugins
