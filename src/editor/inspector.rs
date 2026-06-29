@@ -1,17 +1,20 @@
 use super::{
-    model::{EditorCamera, EditorState},
+    model::{EditorCamera, EditorState, EditorWindow, History},
     refresh::RefreshLevelEvent,
     selection::{clamp_selection, push_default_object, select_nearest},
 };
 use crate::{
-    level::{load::CurrentLevel, registry::Levels},
+    level::{load::CurrentLevel, model::Level, registry::Levels},
     player::components::Player,
     state::AppState,
 };
+use bevy::window::{WindowFocused, WindowMoved};
 use bevy::{ecs::reflect::AppTypeRegistry, ecs::system::SystemParam, prelude::*};
 use bevy_egui::{EguiContext, egui};
 use bevy_inspector_egui::reflect_inspector;
 use std::{ops::DerefMut, path::PathBuf};
+
+const FOCUS_TEST_GRACE_SECS: f32 = 1.0;
 
 pub fn show_editor(
     mut egui_context: Single<&mut EguiContext, With<EditorCamera>>,
@@ -24,16 +27,58 @@ pub fn show_editor(
             egui::Key::S,
         ))
     });
+    let undo_requested = ctx.input_mut(|input| {
+        input.consume_shortcut(&egui::KeyboardShortcut::new(
+            egui::Modifiers::CTRL,
+            egui::Key::Z,
+        ))
+    });
+    let redo_requested = ctx.input_mut(|input| {
+        input.consume_shortcut(&egui::KeyboardShortcut::new(
+            egui::Modifiers::CTRL,
+            egui::Key::Y,
+        ))
+    });
 
     let mut save_clicked = save_requested;
-    let mut close_clicked = false;
+    let focus_test_requested = update_focus_test_timer(&mut params);
+    let mut close_clicked = focus_test_requested;
     let mut changed = false;
+    let current_level_index = params.current_level.0;
 
     {
         let level = params
             .current_level
             .get_from_mut(params.levels.deref_mut())
             .expect("should be a level at this point");
+
+        if params.editor.history_level != current_level_index {
+            params.editor.history.reset(level);
+            params.editor.history_level = current_level_index;
+            params.editor.dirty = false;
+        }
+
+        if undo_requested || redo_requested {
+            finish_pending_edit(&mut params.editor, level, &mut params.refresh_events);
+        }
+
+        if undo_requested {
+            apply_history(
+                &mut params.editor,
+                level,
+                &mut params.refresh_events,
+                History::undo,
+                "undid level edit",
+            );
+        } else if redo_requested {
+            apply_history(
+                &mut params.editor,
+                level,
+                &mut params.refresh_events,
+                History::redo,
+                "redid level edit",
+            );
+        }
 
         clamp_selection(&mut params.editor, level);
 
@@ -136,9 +181,11 @@ pub fn show_editor(
             params.editor.refresh_pending = true;
         }
 
-        if params.editor.refresh_pending && !ctx.wants_keyboard_input() {
-            params.editor.refresh_pending = false;
-            params.refresh_events.write(RefreshLevelEvent);
+        let editing_interactively =
+            ctx.wants_keyboard_input() || ctx.input(|input| input.pointer.any_down());
+
+        if !editing_interactively || save_clicked || close_clicked {
+            finish_pending_edit(&mut params.editor, level, &mut params.refresh_events);
         }
     }
 
@@ -162,6 +209,10 @@ pub struct EditorUiParams<'w, 's> {
     levels: ResMut<'w, Levels>,
     type_registry: Res<'w, AppTypeRegistry>,
     player: Query<'w, 's, &'static Transform, With<Player>>,
+    editor_windows: Query<'w, 's, Entity, With<EditorWindow>>,
+    window_focus: MessageReader<'w, 's, WindowFocused>,
+    window_moved: MessageReader<'w, 's, WindowMoved>,
+    time: Res<'w, Time>,
     refresh_events: MessageWriter<'w, RefreshLevelEvent>,
     next_state: ResMut<'w, NextState<AppState>>,
 }
@@ -183,4 +234,80 @@ fn save(editor: &mut EditorState, current_level: &CurrentLevel, levels: &mut Lev
             editor.status = format!("save failed: {err}");
         }
     }
+}
+
+fn update_focus_test_timer(params: &mut EditorUiParams) -> bool {
+    if params
+        .window_moved
+        .read()
+        .any(|event| params.editor_windows.contains(event.window))
+    {
+        params.editor.focus_test_timer = None;
+        return false;
+    }
+
+    let editor_focused = params
+        .window_focus
+        .read()
+        .filter(|event| params.editor_windows.contains(event.window))
+        .last()
+        .map(|event| event.focused);
+
+    match editor_focused {
+        Some(false) => {
+            params.editor.focus_test_timer =
+                Some(Timer::from_seconds(FOCUS_TEST_GRACE_SECS, TimerMode::Once));
+        }
+        Some(true) => {
+            params.editor.focus_test_timer = None;
+        }
+        None => {}
+    }
+
+    let Some(timer) = params.editor.focus_test_timer.as_mut() else {
+        return false;
+    };
+
+    timer.tick(params.time.delta());
+    if !timer.is_finished() {
+        return false;
+    }
+
+    params.editor.focus_test_timer = None;
+    true
+}
+
+fn apply_history(
+    editor: &mut EditorState,
+    level: &mut Level,
+    refresh_events: &mut MessageWriter<RefreshLevelEvent>,
+    action: fn(&mut History, &mut Level) -> Result<(), &'static str>,
+    status: &'static str,
+) {
+    match action(&mut editor.history, level) {
+        Ok(()) => {
+            clamp_selection(editor, level);
+            editor.dirty = true;
+            editor.status = status.to_string();
+            editor.refresh_pending = false;
+            refresh_events.write(RefreshLevelEvent);
+        }
+        Err(err) => {
+            editor.status = err.to_string();
+        }
+    }
+}
+
+fn finish_pending_edit(
+    editor: &mut EditorState,
+    level: &Level,
+    refresh_events: &mut MessageWriter<RefreshLevelEvent>,
+) {
+    if !editor.refresh_pending {
+        return;
+    }
+
+    editor.history.push(level);
+    editor.refresh_pending = false;
+    refresh_events.write(RefreshLevelEvent);
 }

@@ -22,9 +22,17 @@ impl Plugin for UiPlugin {
                     .run_if(in_state(AppState::MainMenu)),
             )
             .add_systems(OnEnter(AppState::Paused), music_playing::<true>)
+            .add_systems(OnEnter(AppState::Editing), music_playing::<true>)
             .add_systems(
                 OnTransition {
                     exited: AppState::Paused,
+                    entered: AppState::Playing,
+                },
+                music_playing::<false>,
+            )
+            .add_systems(
+                OnTransition {
+                    exited: AppState::Editing,
                     entered: AppState::Playing,
                 },
                 music_playing::<false>,

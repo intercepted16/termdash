@@ -52,7 +52,7 @@ pub fn refresh_level(
         );
     }
 
-    spawn_music(&mut commands, &config, &asset_server, level);
+    spawn_music(&mut commands, &config, &asset_server, level, true);
     refresh_player(&mut commands, level, &mut world.player);
 }
 

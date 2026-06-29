@@ -23,10 +23,16 @@ impl Plugin for EditorPlugin {
             .register_type::<ColliderConstructor>()
             .add_systems(Startup, window::disable_primary_egui_context)
             .add_systems(OnEnter(AppState::Editing), window::open_editor_window)
-            .add_systems(OnExit(AppState::Editing), window::close_editor_window)
-            .add_systems(Update, window::handle_window_close)
+            .add_systems(OnEnter(AppState::MainMenu), window::close_editor_window)
+            .add_systems(
+                Update,
+                (window::handle_focus_change, window::handle_window_close),
+            )
             .add_systems(Update, refresh::refresh_level)
-            .add_systems(EditorWindowPass, inspector::show_editor);
+            .add_systems(
+                EditorWindowPass,
+                inspector::show_editor.run_if(in_state(AppState::Editing)),
+            );
 
         register_level_data_types(app);
     }

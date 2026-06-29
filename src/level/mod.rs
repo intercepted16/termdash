@@ -29,7 +29,10 @@ impl Plugin for LevelPlugin {
             .add_message::<LoadLevelEvent>()
             .add_systems(
                 Update,
-                (load_level.before(move_player), update_audio_visualizer),
+                (
+                    load_level.before(move_player),
+                    update_audio_visualizer.run_if(in_state(AppState::Playing)),
+                ),
             )
             .add_systems(Update, animate_objects.run_if(in_state(AppState::Playing)));
     }

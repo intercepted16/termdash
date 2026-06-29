@@ -248,7 +248,7 @@ pub fn load_level(
             );
         }
 
-        spawn_music(&mut commands, &config, &asset_server, level);
+        spawn_music(&mut commands, &config, &asset_server, level, false);
         commands.spawn((LevelEntity, Player::bundle(&level.player)));
 
         current_level.0 = Some(event.index);
@@ -266,11 +266,18 @@ pub fn spawn_music(
     config: &Config,
     asset_server: &AssetServer,
     level: &Level,
+    paused: bool,
 ) {
     if let Some(path) = &level.music_path {
+        let playback = if paused {
+            PlaybackSettings::LOOP.paused()
+        } else {
+            PlaybackSettings::LOOP
+        };
+
         commands.spawn((
             AudioPlayer::new(asset_server.load(path)),
-            PlaybackSettings::LOOP,
+            playback,
             LevelMusic,
         ));
         if let Some(visualizer) = level.audio_visualizer.as_ref()
