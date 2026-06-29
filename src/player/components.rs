@@ -6,6 +6,7 @@ use bevy::prelude::*;
 pub struct Player {
     pub gravity_dir: Dir2,
     pub grounded_grace: f32,
+    pub jump_buffer: f32,
     pub base_size: Vec2,
     pub size_scale: f32,
     pub scroll_speed_multiplier: f32,
@@ -73,6 +74,7 @@ impl Default for Player {
         Self {
             gravity_dir: Dir2::NEG_Y,
             grounded_grace: 0.0,
+            jump_buffer: 0.0,
             base_size: Vec2::new(32.0, 32.0),
             size_scale: 1.0,
             scroll_speed_multiplier: 1.0,
