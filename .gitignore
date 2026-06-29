@@ -1,3 +1,4 @@
+.cargo/
 target/
 AGENTS.md
 app.log
