@@ -1,8 +1,13 @@
+mod helpers;
 pub mod model;
 mod systems;
+mod widgets;
 use crate::{core::camera::render_camera, gameplay::RunStats};
+use ratatui::prelude::Stylize;
 pub use systems::UiPlugin;
 
+use crate::ui::helpers::center;
+use crate::ui::widgets::modal::Modal;
 use bevy::prelude::*;
 use bevy_ratatui::RatatuiContext;
 use bevy_ratatui_camera::{RatatuiCamera, RatatuiCameraWidget};
@@ -18,7 +23,7 @@ use ratatui::{
 };
 use tui_big_text::{BigText, PixelSize};
 
-use crate::{AppState, level::registry::Levels, state::RuntimeFeatures, ui::model::MenuState};
+use crate::{AppState, level::registry::Levels, state::RuntimeFeatures, ui::model::LevelMenu};
 
 const BASE: Style = Style::new().fg(White);
 pub(crate) const HI: Style = Style::new().fg(Cyan).add_modifier(Modifier::BOLD);
@@ -34,7 +39,7 @@ pub fn render(
     mut tui: ResMut<RatatuiContext>,
     state: Res<State<AppState>>,
     editor: Res<RuntimeFeatures>,
-    menu: Option<Res<MenuState>>,
+    menu: Option<Res<LevelMenu>>,
     levels: Res<Levels>,
     mut camera: Query<(&mut RatatuiCameraWidget, &mut RatatuiCamera)>,
     stats: Res<RunStats>,
@@ -45,13 +50,6 @@ pub fn render(
                 .title(t)
                 .borders(Borders::ALL)
                 .border_style(BORDER)
-        };
-
-        let center = |w: u16, h: u16, r: Rect| Rect {
-            x: r.x + r.width.saturating_sub(w.min(r.width)) / 2,
-            y: r.y + r.height.saturating_sub(h.min(r.height)) / 2,
-            width: w.min(r.width),
-            height: h.min(r.height),
         };
 
         match state.get() {
@@ -88,17 +86,16 @@ pub fn render(
                     list,
                     &mut {
                         let mut s = ListState::default();
-                        s.select((!levels.is_empty()).then_some(menu.0));
+                        s.select((!levels.is_empty()).then_some(menu.selected));
                         s
                     },
                 );
 
                 f.render_widget(
-                    Paragraph::new(
-                        levels
-                            .get(menu.0)
-                            .map_or("No levels found.", |level| level.description.as_str()),
-                    )
+                    Paragraph::new(levels.get(menu.selected).map_or(
+                        "no levels found, although, this should never be reached",
+                        |level| level.description.as_str(),
+                    ))
                     .wrap(Wrap { trim: true })
                     .style(BASE)
                     .block(block(" Details ")),
@@ -111,6 +108,22 @@ pub fn render(
                         .style(Style::new().fg(DarkGray).add_modifier(Modifier::DIM)),
                     help,
                 );
+
+                if menu.confirm_delete {
+                    f.render_widget(
+                        Modal {
+                            title: Line::styled("Delete level?", Style::new().red().bold()),
+                            lines: vec![
+                                Line::from(""),
+                                Line::from("This cannot be undone.").red(),
+                                Line::from(""),
+                                Line::from("[Enter] Delete"),
+                                Line::from("[Esc] Cancel"),
+                            ],
+                        },
+                        f.area(),
+                    );
+                }
             }
 
             AppState::Playing => {
@@ -135,23 +148,21 @@ pub fn render(
             AppState::Paused => {
                 render_camera(&mut camera, f.area(), f.buffer_mut());
 
-                let area = center(42, 9, f.area());
                 let mut lines = vec![
                     Line::styled("Paused", HI),
                     Line::raw(""),
-                    Line::styled("Esc: resume", BASE),
-                    Line::styled("Enter: main menu", BASE),
+                    Line::from("[Esc] resume"),
+                    Line::from("[Enter] main menu"),
                 ];
                 if editor.graphics {
                     lines.insert(3, Line::styled("E: editor", BASE));
                 }
-
-                f.render_widget(Clear, area);
                 f.render_widget(
-                    Paragraph::new(lines)
-                        .alignment(Center)
-                        .block(block(" Menu ")),
-                    area,
+                    Modal {
+                        title: Line::from("Menu"),
+                        lines,
+                    },
+                    f.area(),
                 );
             }
             AppState::Dead => {

@@ -58,6 +58,10 @@ impl Levels {
             })
             .collect::<Result<Vec<_>, _>>()?;
 
+        if levels.is_empty() {
+            return Err("no levels were found".to_string());
+        }
+
         Ok(Self { levels, paths, dir })
     }
 

@@ -25,14 +25,6 @@ pub fn show_editor(
         ))
     });
 
-    if params.current_level.0.is_none() {
-        egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("No Level Loaded");
-            ui.label("Enter a level before opening the editor.");
-        });
-        return;
-    }
-
     let mut save_clicked = save_requested;
     let mut close_clicked = false;
     let mut changed = false;
@@ -41,7 +33,7 @@ pub fn show_editor(
         let level = params
             .current_level
             .get_from_mut(params.levels.deref_mut())
-            .expect("level checked above");
+            .expect("should be a level at this point");
 
         clamp_selection(&mut params.editor, level);
 
