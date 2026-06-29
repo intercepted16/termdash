@@ -301,7 +301,7 @@ impl ObjectAnimation {
 
 pub fn animate_objects(time: Res<Time>, mut query: Query<(&ObjectAnimator, &mut Transform)>) {
     for (animator, mut transform) in &mut query {
-        for animation in animator.0.clone() {
+        for animation in &animator.0 {
             animation.animate(&mut transform, &time);
         }
     }
