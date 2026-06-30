@@ -131,7 +131,12 @@ pub fn render(
 
                 render_camera(&mut camera, area, f.buffer_mut());
 
-                let text = format!("> Attempt {}: {}%", stats.attempts + 1, stats.percent);
+                let text = format!(
+                    "> Attempt {}: {}%, {:.1}s",
+                    stats.attempts + 1,
+                    stats.percent,
+                    stats.time
+                );
                 let width = text.len() as u16;
 
                 f.render_widget(
@@ -213,7 +218,8 @@ pub fn render(
                         lines: vec![
                             Line::from(""),
                             Line::from("You won!").green().bold(),
-                            Line::from(""),
+                            Line::from(format!("Attempts: {}", stats.attempts)),
+                            Line::from(format!("Time (s): {}", stats.time)),
                             Line::from("[Enter] Return to menu"),
                         ],
                     },
