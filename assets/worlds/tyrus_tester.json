@@ -6,10 +6,7 @@
 	"audio_visualizer": {
 		"bar_count": 48
 	},
-	"size": [
-		5600.0,
-		680.0
-	],
+	"height": 680.0,
 	"scroll_speed_px": 74.0,
 	"player": {
 		"spawn": [

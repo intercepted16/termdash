@@ -49,7 +49,7 @@ impl AudioVisualizer {
     pub fn bundles(&self, level: &Level) -> Vec<AudioVisualizerBarBundle> {
         let bar_count = self.bar_count.clamp(16, 160);
         let base_y = level.ground.y + level.ground.height * 0.5;
-        let max_height = (level.size.y * 0.46).max(MIN_BAR_HEIGHT);
+        let max_height = (level.height * 0.46).max(MIN_BAR_HEIGHT);
 
         (0..bar_count)
             .map(|index| {

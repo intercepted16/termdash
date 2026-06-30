@@ -22,7 +22,7 @@ pub struct Level {
     pub id: Option<String>,
     pub name: String,
     pub description: String,
-    pub size: Vec2,
+    pub height: f32,
     pub scroll_speed_px: f32,
     pub player: PlayerDef,
     pub ground: Ground,
@@ -30,6 +30,16 @@ pub struct Level {
     pub objects: Vec<LevelObject>,
     pub music_path: Option<String>,
     pub audio_visualizer: Option<AudioVisualizer>,
+}
+
+impl Level {
+    pub fn end_x(&self) -> f32 {
+        self.ground
+            .segments
+            .iter()
+            .map(|s| s.start_x + s.width)
+            .fold(0.0, f32::max)
+    }
 }
 
 #[level_data(Default)]

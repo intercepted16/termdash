@@ -58,16 +58,10 @@ pub fn tick(
     mut next_state: ResMut<NextState<AppState>>,
     mut pause: ResMut<DeathPause>,
     mut load_events: MessageWriter<LoadLevelEvent>,
-    stats: Res<RunStats>,
 ) {
     pause.timer.tick(time.delta());
 
     if !pause.timer.is_finished() {
-        return;
-    }
-
-    if stats.percent >= 100 {
-        next_state.set(AppState::MainMenu);
         return;
     }
 

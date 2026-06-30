@@ -106,8 +106,8 @@ fn touching_ground(
 }
 
 fn fell_out_of_world(transform: &Transform, level: &Level) -> bool {
-    let bottom = level.ground.y - level.size.y;
-    let top = level.ground.y + level.size.y;
+    let bottom = level.ground.y - level.height;
+    let top = level.ground.y + level.height;
 
     transform.translation.y < bottom || transform.translation.y > top
 }

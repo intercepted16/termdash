@@ -205,6 +205,21 @@ pub fn render(
             AppState::Editing => {
                 render_camera(&mut camera, f.area(), f.buffer_mut());
             }
+
+            AppState::Victory => {
+                f.render_widget(
+                    Modal {
+                        title: Line::styled("Victory", Style::new().green()),
+                        lines: vec![
+                            Line::from(""),
+                            Line::from("You won!").green().bold(),
+                            Line::from(""),
+                            Line::from("[Enter] Return to menu"),
+                        ],
+                    },
+                    f.area(),
+                );
+            }
         }
     });
 }

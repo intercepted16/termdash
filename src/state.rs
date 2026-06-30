@@ -11,6 +11,7 @@ pub enum AppState {
     Paused,
     Dead,
     Editing,
+    Victory,
 }
 
 #[derive(Resource, Default)]
@@ -69,6 +70,12 @@ fn app_state_input(
             }
         }
 
-        _ => {}
+        AppState::Victory => {
+            if input.just_pressed(TerminalKeyCode::Enter) {
+                next.set(AppState::MainMenu);
+            }
+        }
+
+        AppState::MainMenu => {}
     }
 }

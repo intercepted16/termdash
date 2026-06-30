@@ -2,10 +2,7 @@
 	"id": "starter_world",
 	"name": "Starter World",
 	"description": "mate, it's the title!",
-	"size": [
-		2600.0,
-		560.0
-	],
+	"height": 560.0,
 	"scroll_speed_px": 62.0,
 	"player": {
 		"spawn": [
