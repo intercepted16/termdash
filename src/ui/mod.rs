@@ -155,7 +155,7 @@ pub fn render(
                     Line::from("[Enter] main menu"),
                 ];
                 if editor.graphics {
-                    lines.insert(3, Line::styled("E: editor", BASE));
+                    lines.insert(3, Line::styled("[E] editor", BASE));
                 }
                 f.render_widget(
                     Modal {
