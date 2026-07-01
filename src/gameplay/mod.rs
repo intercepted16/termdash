@@ -8,7 +8,6 @@ use crate::gameplay::triggers::{TriggerState, apply_player_triggers};
 use crate::level::load::CurrentLevel;
 use crate::level::model::LevelEntity;
 use crate::level::registry::Levels;
-use crate::paths::GamePaths;
 use crate::player::components::Player;
 use crate::player::move_player;
 use bevy::prelude::*;
@@ -24,39 +23,34 @@ pub struct GameplayPlugin;
 
 impl Plugin for GameplayPlugin {
     fn build(&self, app: &mut App) {
-        let paths = app.world().resource::<GamePaths>();
+        let config = app.world().resource::<Config>();
 
-        app.insert_resource(DeathPause::new(
-            Config::load(paths)
-                .expect("config should load")
-                .player
-                .death_pause_seconds,
-        ))
-        .init_resource::<TriggerState>()
-        .init_resource::<RunStats>()
-        .add_message::<KillPlayer>()
-        .add_systems(
-            Update,
-            (update_run_stats, handle_victory)
-                .chain()
-                .run_if(in_state(AppState::Playing)),
-        )
-        .add_systems(
-            Update,
-            (apply_player_triggers, begin)
-                .chain()
-                .after(move_player)
-                .run_if(in_state(AppState::Playing)),
-        )
-        .add_systems(Update, tick.run_if(in_state(AppState::Dead)))
-        .add_systems(
-            OnTransition {
-                exited: AppState::Dead,
-                entered: AppState::DeathPaused,
-            },
-            finish_pause,
-        )
-        .add_systems(OnEnter(AppState::MainMenu), cleanup_gameplay);
+        app.insert_resource(DeathPause::new(config.player.death_pause_seconds))
+            .init_resource::<TriggerState>()
+            .init_resource::<RunStats>()
+            .add_message::<KillPlayer>()
+            .add_systems(
+                Update,
+                (update_run_stats, handle_victory)
+                    .chain()
+                    .run_if(in_state(AppState::Playing)),
+            )
+            .add_systems(
+                Update,
+                (apply_player_triggers, begin)
+                    .chain()
+                    .after(move_player)
+                    .run_if(in_state(AppState::Playing)),
+            )
+            .add_systems(Update, tick.run_if(in_state(AppState::Dead)))
+            .add_systems(
+                OnTransition {
+                    exited: AppState::Dead,
+                    entered: AppState::DeathPaused,
+                },
+                finish_pause,
+            )
+            .add_systems(OnEnter(AppState::MainMenu), cleanup_gameplay);
     }
 }
 
