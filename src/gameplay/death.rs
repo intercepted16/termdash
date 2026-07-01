@@ -20,25 +20,27 @@ impl DeathPause {
             timer: Timer::from_seconds(seconds, TimerMode::Once),
         }
     }
+
+    pub fn finish(&mut self) {
+        self.timer.set_elapsed(self.timer.duration());
+    }
 }
 
 pub fn begin(
-    resources: (Res<Config>, Res<CurrentLevel>),
+    resources: (Res<Config>, ResMut<RunStats>),
     mut commands: Commands,
     mut next_state: ResMut<NextState<AppState>>,
     mut pause: ResMut<DeathPause>,
     player: PlayerQuery,
     music: MusicEntities,
     mut deaths: MessageReader<KillPlayer>,
-    mut stats: ResMut<RunStats>,
 ) {
     if deaths.read().count() == 0 {
         return;
     }
 
+    let (config, mut stats) = resources;
     stats.attempts += 1;
-
-    let (config, _) = resources;
 
     let (_, _, _, mut velocity, _) = player.into_inner();
 
@@ -74,4 +76,8 @@ pub fn tick(
 
     load_events.write(LoadLevelEvent { index });
     next_state.set(AppState::Playing);
+}
+
+pub fn finish_pause(mut pause: ResMut<DeathPause>) {
+    pause.finish();
 }

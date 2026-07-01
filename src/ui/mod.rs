@@ -52,7 +52,9 @@ pub fn render(
                 .border_style(BORDER)
         };
 
-        match state.get() {
+        let app_state = state.get();
+
+        match app_state {
             AppState::MainMenu => {
                 let menu = menu.unwrap();
 
@@ -150,7 +152,7 @@ pub fn render(
                 );
             }
 
-            AppState::Paused => {
+            AppState::Paused | AppState::DeathPaused => {
                 render_camera(&mut camera, f.area(), f.buffer_mut());
 
                 let mut lines = vec![
@@ -159,7 +161,7 @@ pub fn render(
                     Line::from("[Esc] resume"),
                     Line::from("[Enter] main menu"),
                 ];
-                if editor.graphics {
+                if *app_state == AppState::Paused && editor.graphics {
                     lines.insert(3, Line::styled("[E] editor", BASE));
                 }
                 f.render_widget(

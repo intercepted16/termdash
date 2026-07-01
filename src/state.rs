@@ -10,6 +10,7 @@ pub enum AppState {
     Playing,
     Paused,
     Dead,
+    DeathPaused,
     Editing,
     Victory,
 }
@@ -60,7 +61,17 @@ fn app_state_input(
 
         AppState::Dead => {
             if input.just_pressed(TerminalKeyCode::Esc) {
-                next.set(AppState::Paused)
+                next.set(AppState::DeathPaused)
+            }
+        }
+
+        AppState::DeathPaused => {
+            if input.just_pressed(TerminalKeyCode::Esc) {
+                next.set(AppState::Dead);
+            }
+
+            if input.just_pressed(TerminalKeyCode::Enter) {
+                next.set(AppState::MainMenu);
             }
         }
 

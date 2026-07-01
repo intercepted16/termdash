@@ -3,7 +3,7 @@ pub mod triggers;
 
 use crate::AppState;
 use crate::config::Config;
-use crate::gameplay::death::{DeathPause, KillPlayer, begin, tick};
+use crate::gameplay::death::{DeathPause, KillPlayer, begin, finish_pause, tick};
 use crate::gameplay::triggers::{TriggerState, apply_player_triggers};
 use crate::level::load::CurrentLevel;
 use crate::level::model::LevelEntity;
@@ -27,7 +27,7 @@ impl Plugin for GameplayPlugin {
         let paths = app.world().resource::<GamePaths>();
 
         app.insert_resource(DeathPause::new(
-            Config::load(&paths)
+            Config::load(paths)
                 .expect("config should load")
                 .player
                 .death_pause_seconds,
@@ -49,6 +49,13 @@ impl Plugin for GameplayPlugin {
                 .run_if(in_state(AppState::Playing)),
         )
         .add_systems(Update, tick.run_if(in_state(AppState::Dead)))
+        .add_systems(
+            OnTransition {
+                exited: AppState::Dead,
+                entered: AppState::DeathPaused,
+            },
+            finish_pause,
+        )
         .add_systems(OnEnter(AppState::MainMenu), cleanup_gameplay);
     }
 }
