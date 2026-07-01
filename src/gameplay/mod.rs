@@ -24,8 +24,7 @@ pub struct GameplayPlugin;
 
 impl Plugin for GameplayPlugin {
     fn build(&self, app: &mut App) {
-        // TODO: use preexisting config resource
-        let paths = GamePaths::init().expect("paths should load");
+        let paths = app.world().resource::<GamePaths>();
 
         app.insert_resource(DeathPause::new(
             Config::load(&paths)

@@ -114,7 +114,11 @@ fn main() {
         ));
     }
 
-    app.insert_resource(paths);
+    app.insert_resource(paths)
+    .insert_resource(config)
+    .insert_resource(Gravity::ZERO)
+    .insert_resource(RuntimeFeatures { graphics })
+    .init_state::<AppState>();
 
     app.add_plugins((
         RatatuiPlugins::default(),
@@ -128,9 +132,5 @@ fn main() {
         InputPlugin,
         AppStatePlugin,
     ))
-    .insert_resource(Gravity::ZERO)
-    .insert_resource(RuntimeFeatures { graphics })
-    .insert_resource(config)
-    .init_state::<AppState>()
     .run();
 }
