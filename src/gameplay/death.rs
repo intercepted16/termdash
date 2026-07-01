@@ -58,6 +58,7 @@ pub fn tick(
     mut next_state: ResMut<NextState<AppState>>,
     mut pause: ResMut<DeathPause>,
     mut load_events: MessageWriter<LoadLevelEvent>,
+    mut stats: ResMut<RunStats>,
 ) {
     pause.timer.tick(time.delta());
 
@@ -68,6 +69,8 @@ pub fn tick(
     let Some(index) = current_level.0 else {
         return;
     };
+
+    stats.time = 0.0;
 
     load_events.write(LoadLevelEvent { index });
     next_state.set(AppState::Playing);
