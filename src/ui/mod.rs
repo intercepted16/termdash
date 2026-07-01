@@ -212,14 +212,15 @@ pub fn render(
             }
 
             AppState::Victory => {
+                render_camera(&mut camera, f.area(), f.buffer_mut());
                 f.render_widget(
                     Modal {
                         title: Line::styled("Victory", Style::new().green()),
                         lines: vec![
                             Line::from(""),
                             Line::from("You won!").green().bold(),
-                            Line::from(format!("Attempts: {}", stats.attempts)),
-                            Line::from(format!("Time (s): {}", stats.time)),
+                            Line::from(format!("Attempts: {}", stats.attempts + 1)),
+                            Line::from(format!("Time (s): {:.2}", stats.time)),
                             Line::from("[Enter] Return to menu"),
                         ],
                     },

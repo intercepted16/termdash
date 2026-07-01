@@ -48,10 +48,8 @@ impl Plugin for GameplayPlugin {
                 .after(move_player)
                 .run_if(in_state(AppState::Playing)),
         )
-        .add_systems(Update, tick.run_if(in_state(AppState::Dead)));
-        for state in [AppState::MainMenu, AppState::Victory] {
-            app.add_systems(OnEnter(state), cleanup_gameplay);
-        }
+        .add_systems(Update, tick.run_if(in_state(AppState::Dead)))
+        .add_systems(OnEnter(AppState::MainMenu), cleanup_gameplay);
     }
 }
 
