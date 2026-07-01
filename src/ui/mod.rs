@@ -2,7 +2,7 @@ mod helpers;
 pub mod model;
 mod systems;
 mod widgets;
-use crate::{core::camera::render_camera, gameplay::RunStats};
+use crate::{config::Config, core::camera::render_camera, gameplay::RunStats};
 use ratatui::prelude::Stylize;
 pub use systems::UiPlugin;
 
@@ -23,7 +23,7 @@ use ratatui::{
 };
 use tui_big_text::{BigText, PixelSize};
 
-use crate::{AppState, level::registry::Levels, state::RuntimeFeatures, ui::model::LevelMenu};
+use crate::{AppState, level::registry::Levels, ui::model::LevelMenu};
 
 const BASE: Style = Style::new().fg(White);
 pub(crate) const HI: Style = Style::new().fg(Cyan).add_modifier(Modifier::BOLD);
@@ -38,7 +38,7 @@ const BANNER: &str = r#" _____                     ____            _
 pub fn render(
     mut tui: ResMut<RatatuiContext>,
     state: Res<State<AppState>>,
-    editor: Res<RuntimeFeatures>,
+    config: Res<Config>,
     menu: Option<Res<LevelMenu>>,
     levels: Res<Levels>,
     mut camera: Query<(&mut RatatuiCameraWidget, &mut RatatuiCamera)>,
@@ -53,6 +53,10 @@ pub fn render(
         };
 
         let app_state = state.get();
+
+        if *app_state != AppState::MainMenu {
+            render_camera(&mut camera, f.area(), f.buffer_mut());
+        }
 
         match app_state {
             AppState::MainMenu => {
@@ -129,10 +133,6 @@ pub fn render(
             }
 
             AppState::Playing => {
-                let area = f.area();
-
-                render_camera(&mut camera, area, f.buffer_mut());
-
                 let text = format!(
                     "> Attempt {}: {}%, {:.1}s",
                     stats.attempts + 1,
@@ -153,15 +153,13 @@ pub fn render(
             }
 
             AppState::Paused | AppState::DeathPaused => {
-                render_camera(&mut camera, f.area(), f.buffer_mut());
-
                 let mut lines = vec![
                     Line::styled("Paused", HI),
                     Line::raw(""),
                     Line::from("[Esc] resume"),
                     Line::from("[Enter] main menu"),
                 ];
-                if *app_state == AppState::Paused && editor.graphics {
+                if *app_state == AppState::Paused && config.game.graphics {
                     lines.insert(3, Line::styled("[E] editor", BASE));
                 }
                 f.render_widget(
@@ -173,8 +171,6 @@ pub fn render(
                 );
             }
             AppState::Dead => {
-                render_camera(&mut camera, f.area(), f.buffer_mut());
-
                 let [_, logo_area, _] = Layout::vertical([
                     Constraint::Fill(1),
                     Constraint::Length(8),
@@ -209,12 +205,9 @@ pub fn render(
                 }
             }
 
-            AppState::Editing => {
-                render_camera(&mut camera, f.area(), f.buffer_mut());
-            }
+            AppState::Editing => {}
 
             AppState::Victory => {
-                render_camera(&mut camera, f.area(), f.buffer_mut());
                 f.render_widget(
                     Modal {
                         title: Line::styled("Victory", Style::new().green()),

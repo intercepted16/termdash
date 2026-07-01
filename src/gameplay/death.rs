@@ -20,10 +20,6 @@ impl DeathPause {
             timer: Timer::from_seconds(seconds, TimerMode::Once),
         }
     }
-
-    pub fn finish(&mut self) {
-        self.timer.set_elapsed(self.timer.duration());
-    }
 }
 
 pub fn begin(
@@ -35,7 +31,7 @@ pub fn begin(
     music: MusicEntities,
     mut deaths: MessageReader<KillPlayer>,
 ) {
-    if deaths.read().count() == 0 {
+    if deaths.read().next().is_none() {
         return;
     }
 
@@ -47,9 +43,7 @@ pub fn begin(
     velocity.0 = Vec2::ZERO;
     despawn_music(&mut commands, &music);
 
-    *pause = DeathPause {
-        timer: Timer::from_seconds(config.player.death_pause_seconds, TimerMode::Once),
-    };
+    *pause = DeathPause::new(config.player.death_pause_seconds);
 
     next_state.set(AppState::Dead);
 }
@@ -79,5 +73,6 @@ pub fn tick(
 }
 
 pub fn finish_pause(mut pause: ResMut<DeathPause>) {
-    pause.finish();
+    let duration = pause.timer.duration();
+    pause.timer.set_elapsed(duration);
 }

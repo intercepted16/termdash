@@ -45,13 +45,8 @@ pub fn close_editor_window(
     windows: Query<Entity, With<EditorWindow>>,
     cameras: Query<Entity, With<EditorCamera>>,
 ) {
-    for entity in &cameras {
-        commands.entity(entity).despawn();
-    }
-
-    for entity in &windows {
-        commands.entity(entity).despawn();
-    }
+    despawn_entities(&mut commands, cameras.iter());
+    despawn_entities(&mut commands, windows.iter());
 }
 
 pub fn handle_window_close(
@@ -63,10 +58,7 @@ pub fn handle_window_close(
 ) {
     for event in closed.read() {
         if windows.contains(event.window) {
-            for entity in &cameras {
-                commands.entity(entity).despawn();
-            }
-
+            despawn_entities(&mut commands, cameras.iter());
             commands.entity(event.window).despawn();
             next_state.set(AppState::Playing);
         }
@@ -88,5 +80,11 @@ pub fn handle_focus_change(
         )
     {
         next_state.set(AppState::Editing);
+    }
+}
+
+fn despawn_entities(commands: &mut Commands, entities: impl IntoIterator<Item = Entity>) {
+    for entity in entities {
+        commands.entity(entity).despawn();
     }
 }

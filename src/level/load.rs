@@ -54,8 +54,9 @@ impl ObjectShape {
                 entity.insert(Sprite::from_color(color, size));
             }
             ColliderConstructor::Circle { radius } => {
+                let mesh = Circle::new(radius);
                 entity.insert((
-                    Mesh2d(meshes.add(Circle::new(radius))),
+                    Mesh2d(meshes.add(mesh)),
                     MeshMaterial2d(materials.add(color)),
                 ));
             }
@@ -91,7 +92,7 @@ impl ObjectBehavior {
 }
 
 impl LevelObject {
-    pub fn spawn(
+    fn spawn(
         &self,
         index: usize,
         commands: &mut Commands,
@@ -124,27 +125,29 @@ impl LevelObject {
             asset_server,
         );
     }
+
     fn resolve(&self, prefabs: &Prefabs) -> Result<ResolvedObject, ResolveObjectError> {
-        let prefab = match &self.prefab {
-            Some(name) => Some(
+        let prefab = self
+            .prefab
+            .as_ref()
+            .map(|name| {
                 prefabs
                     .get(name)
-                    .ok_or_else(|| ResolveObjectError::UnknownPrefab(name.clone()))?,
-            ),
-            None => None,
-        };
+                    .ok_or_else(|| ResolveObjectError::UnknownPrefab(name.clone()))
+            })
+            .transpose()?;
 
         let visual = self
             .visual
-            .clone()
-            .or_else(|| prefab.map(|prefab| prefab.visual.clone()))
+            .as_ref()
+            .or_else(|| prefab.map(|prefab| &prefab.visual))
             .ok_or(ResolveObjectError::MissingVisual)?;
 
         let collider = self
             .collider
             .as_ref()
             .or_else(|| prefab.and_then(|prefab| prefab.collider.as_ref()))
-            .or(match &visual {
+            .or_else(|| match visual {
                 Visual::Shape { shape, .. } => Some(shape),
                 _ => None,
             })
@@ -160,7 +163,7 @@ impl LevelObject {
             color: self
                 .color
                 .or_else(|| prefab.and_then(|prefab| prefab.color)),
-            visual: visual.clone(),
+            visual: visual.to_owned(),
             behavior: behavior.clone(),
             collider: collider.clone(),
         })
@@ -186,7 +189,7 @@ impl fmt::Display for ResolveObjectError {
 }
 
 impl Visual {
-    pub fn spawn(
+    fn spawn(
         self,
         entity: &mut EntityCommands,
         meshes: &mut Assets<Mesh>,
@@ -208,6 +211,28 @@ impl Visual {
                 ObjectAnimation::insert_all(entity, animations);
             }
         }
+    }
+}
+
+pub fn spawn_authored_level(
+    commands: &mut Commands,
+    level: &Level,
+    (meshes, materials): (&mut Assets<Mesh>, &mut Assets<ColorMaterial>),
+    prefabs: &Prefabs,
+    asset_server: &AssetServer,
+) {
+    for segment in &level.ground.segments {
+        commands.spawn(segment.make(&level.ground));
+    }
+
+    for (index, object) in level.objects.iter().enumerate() {
+        object.spawn(
+            index,
+            commands,
+            (&mut *meshes, &mut *materials),
+            prefabs,
+            asset_server,
+        );
     }
 }
 
@@ -234,20 +259,13 @@ pub fn load_level(
             commands.entity(entity).despawn();
         }
 
-        for segment in &level.ground.segments {
-            commands.spawn(segment.make(&level.ground));
-        }
-
-        for (index, object) in level.objects.iter().enumerate() {
-            object.spawn(
-                index,
-                &mut commands,
-                (&mut meshes, &mut materials),
-                &prefabs,
-                &asset_server,
-            );
-        }
-
+        spawn_authored_level(
+            &mut commands,
+            level,
+            (&mut meshes, &mut materials),
+            &prefabs,
+            &asset_server,
+        );
         spawn_music(&mut commands, &config, &asset_server, level, false);
         commands.spawn((LevelEntity, Player::bundle(&level.player)));
 
@@ -291,13 +309,13 @@ pub fn spawn_music(
 }
 
 impl ObjectAnimation {
-    pub fn insert_all(entity: &mut EntityCommands, animations: Vec<Self>) {
+    fn insert_all(entity: &mut EntityCommands, animations: Vec<Self>) {
         if !animations.is_empty() {
             entity.insert(ObjectAnimator(animations));
         }
     }
 
-    pub fn animate(&self, transform: &mut Transform, time: &Time) {
+    fn animate(&self, transform: &mut Transform, time: &Time) {
         match self {
             ObjectAnimation::Spin { degrees_per_second } => {
                 transform.rotate_z(degrees_per_second.to_radians() * time.delta_secs());

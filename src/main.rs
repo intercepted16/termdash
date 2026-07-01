@@ -36,7 +36,7 @@ use crate::input::InputPlugin;
 use crate::level::LevelPlugin;
 use crate::paths::GamePaths;
 use crate::player::PlayerPlugin;
-use crate::state::{AppState, AppStatePlugin, RuntimeFeatures};
+use crate::state::{AppState, AppStatePlugin};
 use crate::ui::UiPlugin;
 
 static LOG_GUARD: OnceLock<WorkerGuard> = OnceLock::new();
@@ -76,22 +76,22 @@ fn main() {
     let asset_file_path = paths.data_dir.to_string_lossy().into_owned();
 
     let mut app = App::new();
+    let default_plugins = DefaultPlugins
+        .build()
+        .set(ImagePlugin::default_linear())
+        .set(AssetPlugin {
+            file_path: asset_file_path,
+            ..default()
+        })
+        .disable::<bevy::log::LogPlugin>();
 
     if graphics {
         app.add_plugins((
-            DefaultPlugins
-                .build()
-                .set(ImagePlugin::default_linear())
-                .set(AssetPlugin {
-                    file_path: asset_file_path.clone(),
-                    ..default()
-                })
-                .set(WindowPlugin {
-                    primary_window: None,
-                    exit_condition: ExitCondition::DontExit,
-                    ..default()
-                })
-                .disable::<bevy::log::LogPlugin>(),
+            default_plugins.set(WindowPlugin {
+                primary_window: None,
+                exit_condition: ExitCondition::DontExit,
+                ..default()
+            }),
             EditorPlugin,
         ))
         .insert_resource(WinitSettings {
@@ -102,22 +102,13 @@ fn main() {
         warn!("not running in a graphical environment, editor will be disabled");
         app.add_plugins((
             ScheduleRunnerPlugin::run_loop(frame_wait),
-            DefaultPlugins
-                .build()
-                .set(ImagePlugin::default_linear())
-                .set(AssetPlugin {
-                    file_path: asset_file_path,
-                    ..default()
-                })
-                .disable::<WinitPlugin>()
-                .disable::<bevy::log::LogPlugin>(),
+            default_plugins.disable::<WinitPlugin>(),
         ));
     }
 
     app.insert_resource(paths)
         .insert_resource(config)
         .insert_resource(Gravity::ZERO)
-        .insert_resource(RuntimeFeatures { graphics })
         .init_state::<AppState>();
 
     app.add_plugins((

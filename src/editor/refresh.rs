@@ -1,7 +1,7 @@
 use crate::{
     config::Config,
     level::{
-        load::{CurrentLevel, despawn_music, spawn_music},
+        load::{CurrentLevel, despawn_music, spawn_authored_level, spawn_music},
         model::{LevelEntity, LevelMusic, Prefabs},
         queries::MusicEntities,
         registry::Levels,
@@ -27,6 +27,7 @@ pub fn refresh_level(
 
     let (config, asset_server, prefabs, levels) = resources;
     let (mut meshes, mut materials) = render_assets;
+
     let Some(level) = world.current_level.get_from(&levels) else {
         return;
     };
@@ -38,20 +39,13 @@ pub fn refresh_level(
         commands.entity(entity).despawn();
     }
 
-    for segment in &level.ground.segments {
-        commands.spawn(segment.make(&level.ground));
-    }
-
-    for (index, object) in level.objects.iter().enumerate() {
-        object.spawn(
-            index,
-            &mut commands,
-            (&mut meshes, &mut materials),
-            &prefabs,
-            &asset_server,
-        );
-    }
-
+    spawn_authored_level(
+        &mut commands,
+        level,
+        (&mut meshes, &mut materials),
+        &prefabs,
+        &asset_server,
+    );
     spawn_music(&mut commands, &config, &asset_server, level, true);
     refresh_player(&mut commands, level, &mut world.player);
 }

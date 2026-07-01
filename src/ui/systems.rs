@@ -13,14 +13,7 @@ pub struct UiPlugin;
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<LevelMenu>()
-            .add_message::<NewLevelEvent>()
-            .add_message::<DeleteLevelEvent>()
-            .add_systems(
-                Update,
-                (main_menu_input, new_level, delete_level)
-                    .chain()
-                    .run_if(in_state(AppState::MainMenu)),
-            )
+            .add_systems(Update, main_menu_input.run_if(in_state(AppState::MainMenu)))
             .add_systems(OnEnter(AppState::Paused), music_playing::<true>)
             .add_systems(OnEnter(AppState::Editing), music_playing::<true>)
             .add_systems(
@@ -41,32 +34,23 @@ impl Plugin for UiPlugin {
     }
 }
 
-#[derive(Message)]
-struct NewLevelEvent;
-
-#[derive(Message)]
-struct DeleteLevelEvent {
-    index: usize,
-}
-
 fn main_menu_input(
     input: Res<InputState>,
     mut menu: ResMut<LevelMenu>,
-    levels: Res<Levels>,
-    mut new_level_events: MessageWriter<NewLevelEvent>,
-    mut delete_level_events: MessageWriter<DeleteLevelEvent>,
+    mut levels: ResMut<Levels>,
     mut load_level_events: MessageWriter<LoadLevelEvent>,
     mut next_state: ResMut<NextState<AppState>>,
 ) {
     if menu.confirm_delete {
         if input.just_pressed(TerminalKeyCode::Enter) {
-            delete_level_events.write(DeleteLevelEvent {
-                index: menu.selected,
-            });
-            menu.confirm_delete = false;
-        }
+            if let Err(err) = levels.remove(menu.selected) {
+                error!("could not delete level {}: {err}", menu.selected);
+            } else {
+                menu.selected = menu.selected.min(levels.len().saturating_sub(1));
+            }
 
-        if input.just_pressed(TerminalKeyCode::Esc) {
+            menu.confirm_delete = false;
+        } else if input.just_pressed(TerminalKeyCode::Esc) {
             menu.confirm_delete = false;
         }
 
@@ -82,7 +66,18 @@ fn main_menu_input(
     }
 
     if input.just_pressed(TerminalKeyCode::Char('+')) {
-        new_level_events.write(NewLevelEvent);
+        let index = match levels.save_new() {
+            Ok(index) => index,
+            Err(err) => {
+                error!("could not create a new level: {err}");
+                return;
+            }
+        };
+
+        menu.selected = index;
+        load_level_events.write(LoadLevelEvent { index });
+        next_state.set(AppState::Editing);
+        return;
     }
 
     if input.just_pressed(TerminalKeyCode::Char('-')) && !levels.is_empty() {
@@ -93,45 +88,7 @@ fn main_menu_input(
         load_level_events.write(LoadLevelEvent {
             index: menu.selected,
         });
-
         next_state.set(AppState::Playing);
-    }
-}
-
-fn new_level(
-    mut events: MessageReader<NewLevelEvent>,
-    mut levels: ResMut<Levels>,
-    mut menu: ResMut<LevelMenu>,
-    mut load_level_events: MessageWriter<LoadLevelEvent>,
-    mut next_state: ResMut<NextState<AppState>>,
-) {
-    for _ in events.read() {
-        let index = match levels.save_new() {
-            Ok(index) => index,
-            Err(err) => {
-                error!("could not create a new level: {err}");
-                continue;
-            }
-        };
-
-        menu.selected = index;
-        load_level_events.write(LoadLevelEvent { index });
-        next_state.set(AppState::Editing);
-    }
-}
-
-fn delete_level(
-    mut events: MessageReader<DeleteLevelEvent>,
-    mut levels: ResMut<Levels>,
-    mut menu: ResMut<LevelMenu>,
-) {
-    for event in events.read() {
-        if let Err(err) = levels.remove(event.index) {
-            error!("could not delete level {}: {err}", event.index);
-            continue;
-        }
-
-        menu.selected = menu.selected.min(levels.len().saturating_sub(1));
     }
 }
 

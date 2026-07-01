@@ -12,7 +12,7 @@ use bevy::window::{WindowFocused, WindowMoved};
 use bevy::{ecs::reflect::AppTypeRegistry, ecs::system::SystemParam, prelude::*};
 use bevy_egui::{EguiContext, egui};
 use bevy_inspector_egui::reflect_inspector;
-use std::{ops::DerefMut, path::PathBuf};
+use std::path::PathBuf;
 
 const FOCUS_TEST_GRACE_SECS: f32 = 1.0;
 
@@ -21,24 +21,9 @@ pub fn show_editor(
     mut params: EditorUiParams,
 ) {
     let ctx = egui_context.get_mut();
-    let save_requested = ctx.input_mut(|input| {
-        input.consume_shortcut(&egui::KeyboardShortcut::new(
-            egui::Modifiers::CTRL,
-            egui::Key::S,
-        ))
-    });
-    let undo_requested = ctx.input_mut(|input| {
-        input.consume_shortcut(&egui::KeyboardShortcut::new(
-            egui::Modifiers::CTRL,
-            egui::Key::Z,
-        ))
-    });
-    let redo_requested = ctx.input_mut(|input| {
-        input.consume_shortcut(&egui::KeyboardShortcut::new(
-            egui::Modifiers::CTRL,
-            egui::Key::Y,
-        ))
-    });
+    let save_requested = consume_ctrl_shortcut(ctx, egui::Key::S);
+    let undo_requested = consume_ctrl_shortcut(ctx, egui::Key::Z);
+    let redo_requested = consume_ctrl_shortcut(ctx, egui::Key::Y);
 
     let mut save_clicked = save_requested;
     let focus_test_requested = update_focus_test_timer(&mut params);
@@ -49,7 +34,7 @@ pub fn show_editor(
     {
         let level = params
             .current_level
-            .get_from_mut(params.levels.deref_mut())
+            .get_from_mut(&mut params.levels)
             .expect("should be a level at this point");
 
         if params.editor.history_level != current_level_index {
@@ -84,13 +69,8 @@ pub fn show_editor(
 
         egui::TopBottomPanel::top("editor_toolbar").show(ctx, |ui| {
             ui.horizontal(|ui| {
-                if ui.button("Save").clicked() {
-                    save_clicked = true;
-                }
-
-                if ui.button("Test").clicked() {
-                    close_clicked = true;
-                }
+                save_clicked |= ui.button("Save").clicked();
+                close_clicked |= ui.button("Test").clicked();
 
                 let marker = if params.editor.dirty { "*" } else { "" };
                 ui.label(format!("{marker}{}", params.editor.status));
@@ -200,6 +180,12 @@ pub fn show_editor(
     if close_clicked {
         params.next_state.set(AppState::Playing);
     }
+}
+
+fn consume_ctrl_shortcut(ctx: &egui::Context, key: egui::Key) -> bool {
+    ctx.input_mut(|input| {
+        input.consume_shortcut(&egui::KeyboardShortcut::new(egui::Modifiers::CTRL, key))
+    })
 }
 
 #[derive(SystemParam)]

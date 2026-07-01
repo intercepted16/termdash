@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use ratatui::crossterm::event::KeyCode as TerminalKeyCode;
 
+use crate::config::Config;
 use crate::input::InputState;
 
 #[derive(States, Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
@@ -15,11 +16,6 @@ pub enum AppState {
     Victory,
 }
 
-#[derive(Resource, Default)]
-pub struct RuntimeFeatures {
-    pub graphics: bool,
-}
-
 pub struct AppStatePlugin;
 
 impl Plugin for AppStatePlugin {
@@ -30,63 +26,29 @@ impl Plugin for AppStatePlugin {
 
 fn app_state_input(
     input: Res<InputState>,
-    editor: Res<RuntimeFeatures>,
+    config: Res<Config>,
     state: Res<State<AppState>>,
     mut next: ResMut<NextState<AppState>>,
 ) {
-    match state.get() {
-        AppState::Playing => {
-            if input.just_pressed(TerminalKeyCode::Esc) {
-                next.set(AppState::Paused);
-            }
+    let esc = input.just_pressed(TerminalKeyCode::Esc);
+    let enter = input.just_pressed(TerminalKeyCode::Enter);
+    let edit = input.just_pressed(TerminalKeyCode::Char('e'));
 
-            if input.just_pressed(TerminalKeyCode::Char('e')) && editor.graphics {
-                next.set(AppState::Editing);
-            }
-        }
+    let target = match state.get() {
+        AppState::Playing if edit && config.game.graphics => Some(AppState::Editing),
+        AppState::Playing if esc => Some(AppState::Paused),
+        AppState::Paused if edit && config.game.graphics => Some(AppState::Editing),
+        AppState::Paused if enter => Some(AppState::MainMenu),
+        AppState::Paused if esc => Some(AppState::Playing),
+        AppState::Dead if esc => Some(AppState::DeathPaused),
+        AppState::DeathPaused if enter => Some(AppState::MainMenu),
+        AppState::DeathPaused if esc => Some(AppState::Dead),
+        AppState::Editing if edit => Some(AppState::Playing),
+        AppState::Victory if enter => Some(AppState::MainMenu),
+        _ => None,
+    };
 
-        AppState::Paused => {
-            if input.just_pressed(TerminalKeyCode::Esc) {
-                next.set(AppState::Playing);
-            }
-
-            if input.just_pressed(TerminalKeyCode::Enter) {
-                next.set(AppState::MainMenu);
-            }
-
-            if input.just_pressed(TerminalKeyCode::Char('e')) && editor.graphics {
-                next.set(AppState::Editing);
-            }
-        }
-
-        AppState::Dead => {
-            if input.just_pressed(TerminalKeyCode::Esc) {
-                next.set(AppState::DeathPaused)
-            }
-        }
-
-        AppState::DeathPaused => {
-            if input.just_pressed(TerminalKeyCode::Esc) {
-                next.set(AppState::Dead);
-            }
-
-            if input.just_pressed(TerminalKeyCode::Enter) {
-                next.set(AppState::MainMenu);
-            }
-        }
-
-        AppState::Editing => {
-            if input.just_pressed(TerminalKeyCode::Char('e')) {
-                next.set(AppState::Playing);
-            }
-        }
-
-        AppState::Victory => {
-            if input.just_pressed(TerminalKeyCode::Enter) {
-                next.set(AppState::MainMenu);
-            }
-        }
-
-        AppState::MainMenu => {}
+    if let Some(target) = target {
+        next.set(target);
     }
 }

@@ -12,11 +12,13 @@ pub struct EditorCamera;
 #[derive(ScheduleLabel, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct EditorWindowPass;
 
+#[derive(Default)]
 pub struct History {
-    pub limit: usize,
-    pub stack: Vec<Level>,
-    pub position: usize,
+    stack: Vec<Level>,
+    position: usize,
 }
+
+const HISTORY_LIMIT: usize = 100;
 
 impl History {
     pub fn reset(&mut self, level: &Level) {
@@ -49,21 +51,11 @@ impl History {
         self.stack.truncate(self.position + 1);
         self.stack.push(level.clone());
 
-        if self.stack.len() > self.limit {
+        if self.stack.len() > HISTORY_LIMIT {
             self.stack.remove(0);
         }
 
         self.position = self.stack.len() - 1;
-    }
-}
-
-impl Default for History {
-    fn default() -> Self {
-        Self {
-            limit: 100,
-            stack: Vec::new(),
-            position: 0,
-        }
     }
 }
 
